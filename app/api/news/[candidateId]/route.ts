@@ -31,7 +31,7 @@ export async function GET(
   // 후보자 이름 조회
   const { data: candidate } = await supabase
     .from("candidates")
-    .select("name, party, sgg_name")
+    .select("name, party")
     .eq("external_id", candidateId)
     .single();
 
