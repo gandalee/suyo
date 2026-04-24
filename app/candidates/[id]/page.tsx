@@ -23,7 +23,7 @@ interface CandidateData {
 
 function PledgeTab({ pledges }: { pledges: CandidateData["pledges"] }) {
   if (pledges.length === 0) {
-    return <EmptyState emoji="📋" text="공약 정보가 아직 없어요" sub="선관위 공약 데이터 연동 후 업데이트돼요" />;
+    return <EmptyState emoji="📋" text="공약 정보가 아직 없어요" sub="5월 15일 후보 등록 마감 후 업데이트돼요" />;
   }
   return (
     <div className="flex flex-col gap-3">
@@ -38,37 +38,42 @@ function PledgeTab({ pledges }: { pledges: CandidateData["pledges"] }) {
   );
 }
 
-function CareerTab({ history }: { history: CandidateData["history"] }) {
+function CareerTab({ history, candidate }: { history: CandidateData["history"]; candidate: CandidateData["candidate"] }) {
   const education = history.filter((h) => h.kind === "education");
   const career = history.filter((h) => h.kind === "career");
 
-  if (history.length === 0) {
+  // DB에 상세 경력이 없으면 candidates 테이블의 요약 필드 사용
+  const fallbackEdu = candidate.edu ? [String(candidate.edu)] : [];
+  const fallbackCareer = [candidate.career1, candidate.career2].filter(Boolean).map(String);
+
+  const eduItems = education.length > 0 ? education.map((e) => e.detail) : fallbackEdu;
+  const careerItems = career.length > 0 ? career.map((c) => c.detail) : fallbackCareer;
+
+  if (eduItems.length === 0 && careerItems.length === 0) {
     return <EmptyState emoji="💼" text="경력 정보가 없어요" sub="" />;
   }
 
   return (
     <div className="flex flex-col gap-6">
-      {education.length > 0 && (
+      {eduItems.length > 0 && (
         <section>
           <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--ink3)" }}>학력</h3>
           <div className="flex flex-col gap-2">
-            {education.map((e, i) => (
-              <div key={i} className="flex gap-3 px-5 py-4 rounded-2xl" style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
-                <span className="text-base">🎓</span>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--ink)" }}>{e.detail}</p>
+            {eduItems.map((text, i) => (
+              <div key={i} className="px-5 py-4 rounded-2xl" style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--ink)" }}>{text}</p>
               </div>
             ))}
           </div>
         </section>
       )}
-      {career.length > 0 && (
+      {careerItems.length > 0 && (
         <section>
           <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--ink3)" }}>경력</h3>
           <div className="flex flex-col gap-2">
-            {career.map((c, i) => (
-              <div key={i} className="flex gap-3 px-5 py-4 rounded-2xl" style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
-                <span className="text-base">💼</span>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--ink)" }}>{c.detail}</p>
+            {careerItems.map((text, i) => (
+              <div key={i} className="px-5 py-4 rounded-2xl" style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--ink)" }}>{text}</p>
               </div>
             ))}
           </div>
@@ -80,7 +85,7 @@ function CareerTab({ history }: { history: CandidateData["history"] }) {
 
 function AssetsTab({ disclosure }: { disclosure: CandidateData["disclosure"] }) {
   if (!disclosure) {
-    return <EmptyState emoji="🏦" text="재산·병역 정보가 없어요" sub="info.nec.go.kr 크롤링 연동 후 업데이트돼요" />;
+    return <EmptyState emoji="🏦" text="재산·병역 정보가 없어요" sub="5월 15일 후보 등록 마감 후 업데이트돼요" />;
   }
   const d = disclosure as Record<string, unknown>;
   return (
@@ -105,7 +110,7 @@ function AssetsTab({ disclosure }: { disclosure: CandidateData["disclosure"] }) 
 
 function CriminalTab({ disclosure }: { disclosure: CandidateData["disclosure"] }) {
   if (!disclosure) {
-    return <EmptyState emoji="⚖️" text="전과·소송 정보가 없어요" sub="info.nec.go.kr 크롤링 연동 후 업데이트돼요" />;
+    return <EmptyState emoji="⚖️" text="전과·소송 정보가 없어요" sub="5월 15일 후보 등록 마감 후 업데이트돼요" />;
   }
   const d = disclosure as Record<string, unknown>;
   const hasCriminal = Boolean(d.criminal && JSON.stringify(d.criminal) !== "[]");
@@ -319,7 +324,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
           {/* 탭 컨텐츠 */}
           <div className="px-5 py-6 flex-1">
             {activeTab === "pledge" && <PledgeTab pledges={data?.pledges ?? []} />}
-            {activeTab === "career" && <CareerTab history={data?.history ?? []} />}
+            {activeTab === "career" && <CareerTab history={data?.history ?? []} candidate={data?.candidate ?? {}} />}
             {activeTab === "assets" && <AssetsTab disclosure={data?.disclosure ?? null} />}
             {activeTab === "criminal" && <CriminalTab disclosure={data?.disclosure ?? null} />}
             {activeTab === "media" && <MediaTab candidateId={id} />}
