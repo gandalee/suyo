@@ -169,16 +169,19 @@ function ResultContent() {
                       <p className="text-xs leading-snug flex-1" style={{ color: "var(--ink2)" }}>
                         {issue.statement}
                       </p>
-                      <div className="flex gap-1 flex-shrink-0">
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         {userS && (
-                          <span className="text-xs" title={`나: ${STANCE_LABEL[userS].label}`}>
-                            {STANCE_LABEL[userS].emoji}
-                          </span>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-xs leading-none">{STANCE_LABEL[userS].emoji}</span>
+                            <span className="text-[9px] leading-none" style={{ color: "var(--ink3)" }}>나</span>
+                          </div>
                         )}
+                        <span className="text-xs" style={{ color: "var(--line2)" }}>→</span>
                         {candS && (
-                          <span className="text-xs" title={`후보: ${STANCE_LABEL[candS].label}`}>
-                            {STANCE_LABEL[candS].emoji}
-                          </span>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-xs leading-none">{STANCE_LABEL[candS].emoji}</span>
+                            <span className="text-[9px] leading-none" style={{ color: "var(--ink3)" }}>후보</span>
+                          </div>
                         )}
                       </div>
                     </div>
