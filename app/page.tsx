@@ -1,65 +1,251 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  searchDistricts,
+  SIDO_LIST,
+  SIGUNGU_BY_SIDO,
+  type District,
+} from "@/src/data/districts";
 
 export default function Home() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<District[]>([]);
+  const [selectedSido, setSelectedSido] = useState("");
+  const [selectedSigungu, setSelectedSigungu] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setSuggestions(searchDistricts(query));
+  }, [query]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function selectDistrict(d: District) {
+    setQuery(`${d.sido} ${d.sigungu}`);
+    setSuggestions([]);
+    setShowDropdown(false);
+    goToDistrict(d);
+  }
+
+  function goToDistrict(d: District) {
+    router.push(
+      `/ballot?sido=${encodeURIComponent(d.sido)}&sigungu=${encodeURIComponent(d.sigungu)}`
+    );
+  }
+
+  function handleDropdownGo() {
+    if (selectedSido && selectedSigungu) {
+      goToDistrict({ sido: selectedSido, sigungu: selectedSigungu });
+    }
+  }
+
+  const sigunguList = selectedSido ? (SIGUNGU_BY_SIDO[selectedSido] ?? []) : [];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main
+      className="flex flex-col min-h-screen px-5"
+      style={{ background: "var(--bg-page)" }}
+    >
+      {/* 헤더 */}
+      <header className="flex items-center justify-between pt-12 pb-8">
+        <span
+          className="text-2xl font-bold tracking-tight"
+          style={{ color: "var(--ink)" }}
+        >
+          수요
+        </span>
+        <span className="text-sm" style={{ color: "var(--ink3)" }}>
+          D-{Math.ceil((new Date("2026-06-03").getTime() - Date.now()) / 86400000)}
+        </span>
+      </header>
+
+      {/* 메인 */}
+      <section className="flex flex-col flex-1 justify-center pb-24 gap-10">
+        {/* 타이틀 */}
+        <div className="flex flex-col gap-2">
+          <h1
+            className="text-3xl font-bold leading-tight tracking-tight"
+            style={{ color: "var(--ink)" }}
+          >
+            내 투표용지
+            <br />
+            확인하기
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-base" style={{ color: "var(--ink3)" }}>
+            지역을 선택하면 후보자 정보를 볼 수 있어요
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* 검색창 */}
+        <div className="flex flex-col gap-3">
+          <label
+            className="text-sm font-medium"
+            style={{ color: "var(--ink2)" }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            검색으로 찾기
+          </label>
+          <div className="relative" ref={dropdownRef}>
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setShowDropdown(true);
+              }}
+              onFocus={() => setShowDropdown(true)}
+              placeholder="강남, 수원, 해운대..."
+              className="w-full h-14 px-5 text-base outline-none"
+              style={{
+                background: "var(--white)",
+                border: "1.5px solid var(--line2)",
+                borderRadius: 14,
+                color: "var(--ink)",
+              }}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {showDropdown && suggestions.length > 0 && (
+              <ul
+                className="absolute left-0 right-0 top-[calc(100%+6px)] z-10 overflow-hidden"
+                style={{
+                  background: "var(--white)",
+                  border: "1px solid var(--line2)",
+                  borderRadius: 14,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                }}
+              >
+                {suggestions.map((d, i) => (
+                  <li key={i}>
+                    <button
+                      className="w-full text-left px-5 py-4 text-base transition-colors"
+                      style={{
+                        color: "var(--ink)",
+                        borderBottom:
+                          i < suggestions.length - 1
+                            ? "1px solid var(--line)"
+                            : "none",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "var(--bg-page)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                      onClick={() => selectDistrict(d)}
+                    >
+                      <span style={{ color: "var(--ink3)" }}>{d.sido}</span>{" "}
+                      <span className="font-medium">{d.sigungu}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
-      </main>
-    </div>
+
+        {/* 구분선 */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px" style={{ background: "var(--line2)" }} />
+          <span className="text-sm" style={{ color: "var(--ink3)" }}>
+            또는
+          </span>
+          <div className="flex-1 h-px" style={{ background: "var(--line2)" }} />
+        </div>
+
+        {/* 드롭다운 */}
+        <div className="flex flex-col gap-3">
+          <label
+            className="text-sm font-medium"
+            style={{ color: "var(--ink2)" }}
+          >
+            목록에서 선택하기
+          </label>
+          <div className="flex flex-col gap-2">
+            <select
+              value={selectedSido}
+              onChange={(e) => {
+                setSelectedSido(e.target.value);
+                setSelectedSigungu("");
+              }}
+              className="w-full h-14 px-5 text-base outline-none appearance-none"
+              style={{
+                background: "var(--white)",
+                border: "1.5px solid var(--line2)",
+                borderRadius: 14,
+                color: selectedSido ? "var(--ink)" : "var(--ink3)",
+              }}
+            >
+              <option value="">시·도 선택</option>
+              {SIDO_LIST.map((sido) => (
+                <option key={sido} value={sido}>
+                  {sido}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedSigungu}
+              onChange={(e) => setSelectedSigungu(e.target.value)}
+              disabled={!selectedSido}
+              className="w-full h-14 px-5 text-base outline-none appearance-none"
+              style={{
+                background: selectedSido ? "var(--white)" : "var(--bg-page)",
+                border: "1.5px solid var(--line2)",
+                borderRadius: 14,
+                color: selectedSigungu ? "var(--ink)" : "var(--ink3)",
+                opacity: selectedSido ? 1 : 0.5,
+              }}
+            >
+              <option value="">시·군·구 선택</option>
+              {sigunguList.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={handleDropdownGo}
+            disabled={!selectedSido || !selectedSigungu}
+            className="w-full h-14 text-base font-semibold transition-opacity"
+            style={{
+              background:
+                selectedSido && selectedSigungu
+                  ? "var(--ink)"
+                  : "var(--line2)",
+              color:
+                selectedSido && selectedSigungu
+                  ? "var(--white)"
+                  : "var(--ink3)",
+              borderRadius: 99,
+              opacity: selectedSido && selectedSigungu ? 1 : 0.6,
+            }}
+          >
+            투표용지 보기
+          </button>
+        </div>
+      </section>
+
+      {/* 하단 */}
+      <footer className="pb-8 text-center">
+        <p className="text-xs" style={{ color: "var(--ink3)" }}>
+          한국의 선거는 언제나 수요일 · 2026.6.3
+        </p>
+      </footer>
+    </main>
   );
 }
