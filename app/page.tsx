@@ -251,7 +251,7 @@ export default function Home() {
             border: "1px solid var(--green-dark)",
           }}
         >
-          <span className="text-2xl">🗳️</span>
+          <span className="text-2xl">◎</span>
           <div className="flex-1">
             <p className="text-sm font-bold" style={{ color: "var(--ink)" }}>공약 성향 매칭 해보기</p>
             <p className="text-xs mt-0.5" style={{ color: "var(--ink2)" }}>14가지 이슈로 나와 가까운 후보 찾기</p>

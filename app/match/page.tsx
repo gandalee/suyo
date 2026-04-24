@@ -47,10 +47,10 @@ export default function MatchPage() {
     }
   }
 
-  const BUTTONS: { stance: Stance; label: string; emoji: string; color: string; bg: string; activeBg: string }[] = [
-    { stance: "agree", label: "동의해요", emoji: "👍", color: "var(--ok-ink)", bg: "var(--white)", activeBg: "var(--ok-bg)" },
-    { stance: "neutral", label: "잘 모르겠어요", emoji: "🤷", color: "var(--ink2)", bg: "var(--white)", activeBg: "var(--line)" },
-    { stance: "disagree", label: "반대해요", emoji: "👎", color: "var(--bad-ink)", bg: "var(--white)", activeBg: "var(--bad-bg)" },
+  const BUTTONS: { stance: Stance; label: string; mark: string; color: string; bg: string; activeBg: string }[] = [
+    { stance: "agree",    label: "동의해요",      mark: "찬", color: "var(--ok-ink)",  bg: "var(--white)", activeBg: "var(--ok-bg)" },
+    { stance: "neutral",  label: "잘 모르겠어요", mark: "중", color: "var(--ink2)",    bg: "var(--white)", activeBg: "var(--line)" },
+    { stance: "disagree", label: "동의하지 않아요", mark: "반", color: "var(--ink2)",  bg: "var(--white)", activeBg: "var(--line)" },
   ];
 
   return (
@@ -106,15 +106,18 @@ export default function MatchPage() {
                   color: isSelected ? btn.color : "var(--ink2)",
                 }}
               >
-                <span className="text-2xl">{btn.emoji}</span>
+                <span
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                  style={{
+                    background: isSelected ? btn.color : "var(--line2)",
+                    color: isSelected ? "var(--white)" : "var(--ink3)",
+                  }}
+                >
+                  {btn.mark}
+                </span>
                 <span className="text-base font-medium">{btn.label}</span>
                 {isSelected && (
-                  <span className="ml-auto">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <circle cx="10" cy="10" r="10" fill={btn.color} />
-                      <path d="M6 10L9 13L14 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </span>
+                  <span className="ml-auto w-4 h-4 rounded-full flex-shrink-0" style={{ background: btn.color }} />
                 )}
               </button>
             );

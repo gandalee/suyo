@@ -28,10 +28,16 @@ function scoreMatch(userStances: UserStances): RankedCandidate[] {
   }).sort((a, b) => b.score - a.score);
 }
 
-const STANCE_LABEL: Record<Stance, { label: string; emoji: string }> = {
-  agree: { label: "동의", emoji: "👍" },
-  neutral: { label: "중립", emoji: "🤷" },
-  disagree: { label: "반대", emoji: "👎" },
+const STANCE_LABEL: Record<Stance, { label: string; short: string }> = {
+  agree:    { label: "동의",    short: "찬" },
+  neutral:  { label: "중립",   short: "중" },
+  disagree: { label: "반대",   short: "반" },
+};
+
+const STANCE_COLOR: Record<Stance, { fg: string; bg: string }> = {
+  agree:    { fg: "var(--ok-ink)",  bg: "var(--ok-bg)" },
+  neutral:  { fg: "var(--ink3)",    bg: "var(--line2)" },
+  disagree: { fg: "var(--ink3)",    bg: "var(--line2)" },
 };
 
 function matchColor(pct: number) {
@@ -169,19 +175,22 @@ function ResultContent() {
                       <p className="text-xs leading-snug flex-1" style={{ color: "var(--ink2)" }}>
                         {issue.statement}
                       </p>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <div className="flex items-center gap-1 flex-shrink-0">
                         {userS && (
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span className="text-xs leading-none">{STANCE_LABEL[userS].emoji}</span>
-                            <span className="text-[9px] leading-none" style={{ color: "var(--ink3)" }}>나</span>
-                          </div>
+                          <span
+                            className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                            style={{ background: STANCE_COLOR[userS].bg, color: STANCE_COLOR[userS].fg }}
+                          >
+                            나 {STANCE_LABEL[userS].short}
+                          </span>
                         )}
-                        <span className="text-xs" style={{ color: "var(--line2)" }}>→</span>
                         {candS && (
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span className="text-xs leading-none">{STANCE_LABEL[candS].emoji}</span>
-                            <span className="text-[9px] leading-none" style={{ color: "var(--ink3)" }}>후보</span>
-                          </div>
+                          <span
+                            className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                            style={{ background: STANCE_COLOR[candS].bg, color: STANCE_COLOR[candS].fg }}
+                          >
+                            후보 {STANCE_LABEL[candS].short}
+                          </span>
                         )}
                       </div>
                     </div>
