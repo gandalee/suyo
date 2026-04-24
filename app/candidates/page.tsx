@@ -19,9 +19,11 @@ interface Candidate {
 }
 
 function CandidateCard({ c }: { c: Candidate }) {
+  const router = useRouter();
   return (
     <div
-      className="flex flex-col gap-3 px-5 py-5"
+      className="flex flex-col gap-3 px-5 py-5 cursor-pointer active:opacity-70 transition-opacity"
+      onClick={() => router.push(`/candidates/${c.huboid}`)}
       style={{
         background: "var(--white)",
         border: "1px solid var(--line)",
