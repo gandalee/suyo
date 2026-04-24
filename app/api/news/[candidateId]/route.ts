@@ -31,7 +31,7 @@ export async function GET(
   // 후보자 이름 조회
   const { data: candidate } = await supabase
     .from("candidates")
-    .select("name, party")
+    .select("name, party, sgg_name")
     .eq("external_id", candidateId)
     .single();
 
@@ -39,7 +39,9 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const query = `${candidate.name} 선거`;
+  // 동명이인 방지: 이름 + 정당 + 지역 조합으로 검색
+  const district = candidate.sgg_name ?? "";
+  const query = `"${candidate.name}" ${candidate.party ?? ""} ${district}`.trim();
 
   const res = await fetch(
     `${NAVER_API}?query=${encodeURIComponent(query)}&display=40&sort=date`,
@@ -85,7 +87,8 @@ export async function GET(
         label: meta?.label ?? null,
       };
     })
-    .filter((item) => item.lean !== null) // 분류된 것만
+    .filter((item) => item.lean !== null) // 분류된 언론사만
+    .filter((item) => item.title.includes(candidate.name)) // 이름 포함 기사만 (동명이인 제거)
     .slice(0, 30);
 
   return NextResponse.json({
