@@ -261,22 +261,41 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
           <section className="px-5 py-6" style={{ background: "var(--white)", borderBottom: "1px solid var(--line)" }}>
             <div className="flex items-center gap-4">
               {/* 아바타 */}
-              <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold flex-shrink-0"
-                style={{ background: "var(--bg-page)", color: "var(--ink2)" }}>
-                {String(c.name ?? "")[0]}
+              <div
+                className="flex-shrink-0 flex flex-col items-center justify-center"
+                style={{ width: 72, height: 72, borderRadius: 20, background: "var(--green)" }}
+              >
+                <span className="text-3xl font-black leading-none" style={{ color: "var(--ink)" }}>
+                  {String(c.name ?? "")[0]}
+                </span>
+                <span className="text-[10px] mt-0.5" style={{ color: "var(--ink2)" }}>
+                  기호 {String(c.symbol ?? "")}
+                </span>
               </div>
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold" style={{ color: "var(--ink)" }}>{String(c.name ?? "")}</span>
-                  <span className="text-sm px-2 py-0.5 rounded-full font-medium"
-                    style={{ background: "var(--bg-page)", color: "var(--ink2)" }}>
-                    기호 {String(c.symbol ?? "")}
-                  </span>
-                </div>
+              <div className="flex flex-col gap-1.5 flex-1">
+                <span className="text-xl font-bold" style={{ color: "var(--ink)" }}>{String(c.name ?? "")}</span>
                 <p className="text-sm" style={{ color: "var(--ink2)" }}>{String(c.party ?? "")}</p>
-                <p className="text-sm" style={{ color: "var(--ink3)" }}>
-                  {String(c.gender === "M" ? "남" : "여")} · {String(c.age ?? "")}세 · {String(c.job ?? "")}
-                </p>
+                {/* 스펙 태그 */}
+                <div className="flex gap-1.5 flex-wrap">
+                  {c.age && (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                      style={{ background: "var(--bg-page)", color: "var(--ink2)" }}>
+                      {String(c.age)}세
+                    </span>
+                  )}
+                  {c.gender && (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                      style={{ background: "var(--bg-page)", color: "var(--ink2)" }}>
+                      {c.gender === "M" ? "남" : "여"}
+                    </span>
+                  )}
+                  {c.job && (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                      style={{ background: "var(--green)", color: "var(--ink)" }}>
+                      {String(c.job)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </section>

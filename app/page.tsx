@@ -80,14 +80,14 @@ export default function Home() {
         {/* 타이틀 */}
         <div className="flex flex-col gap-2">
           <h1
-            className="text-3xl font-bold leading-tight tracking-tight"
+            className="text-4xl font-black leading-tight tracking-tight"
             style={{ color: "var(--ink)" }}
           >
             내 투표용지
             <br />
             확인하기
           </h1>
-          <p className="text-base" style={{ color: "var(--ink3)" }}>
+          <p className="text-base mt-1" style={{ color: "var(--ink3)" }}>
             지역을 선택하면 후보자 정보를 볼 수 있어요
           </p>
         </div>

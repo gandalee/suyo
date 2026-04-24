@@ -22,66 +22,90 @@ function CandidateCard({ c }: { c: Candidate }) {
   const router = useRouter();
   return (
     <div
-      className="flex flex-col gap-3 px-5 py-5 cursor-pointer active:opacity-70 transition-opacity"
+      className="flex items-center gap-4 px-5 py-5 cursor-pointer active:opacity-70 transition-opacity"
       onClick={() => router.push(`/candidates/${c.huboid}`)}
       style={{
         background: "var(--white)",
         border: "1px solid var(--line)",
-        borderRadius: 16,
+        borderRadius: 20,
       }}
     >
-      {/* 상단: 기호 + 이름 + 정당 */}
-      <div className="flex items-center gap-3">
-        <span
-          className="flex items-center justify-center w-9 h-9 text-sm font-bold rounded-full flex-shrink-0"
-          style={{ background: "var(--bg-page)", color: "var(--ink2)" }}
-        >
+      {/* 아바타 — 기호 번호 */}
+      <div
+        className="flex flex-col items-center justify-center flex-shrink-0"
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: 16,
+          background: "var(--bg-page)",
+        }}
+      >
+        <span className="text-[10px]" style={{ color: "var(--ink3)" }}>기호</span>
+        <span className="text-xl font-black leading-tight" style={{ color: "var(--ink)" }}>
           {c.giho}
         </span>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-base font-bold" style={{ color: "var(--ink)" }}>
-              {c.name}
-            </span>
-            <span className="text-sm" style={{ color: "var(--ink3)" }}>
-              {c.gender === "남" ? "남" : "여"} · {c.age}세
-            </span>
-          </div>
-          <span className="text-sm" style={{ color: "var(--ink2)" }}>
-            {c.jdName}
-          </span>
-        </div>
-        {c.status === "사퇴" && (
-          <span
-            className="text-xs px-2 py-1 rounded-full"
-            style={{ background: "var(--bad-bg)", color: "var(--bad-ink)" }}
-          >
-            사퇴
-          </span>
-        )}
       </div>
 
-      {/* 구분선 */}
-      <div style={{ height: 1, background: "var(--line)" }} />
+      {/* 본문 */}
+      <div className="flex-1 min-w-0">
+        {/* 이름 + 정당 */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-base font-bold" style={{ color: "var(--ink)" }}>
+            {c.name}
+          </span>
+          {c.status === "사퇴" && (
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+              style={{ background: "var(--line2)", color: "var(--ink3)" }}
+            >
+              사퇴
+            </span>
+          )}
+        </div>
+        <p className="text-sm mt-0.5" style={{ color: "var(--ink3)" }}>
+          {c.jdName}
+        </p>
 
-      {/* 직업 + 경력 */}
-      <div className="flex flex-col gap-1.5">
-        {c.job && (
-          <p className="text-sm" style={{ color: "var(--ink2)" }}>
-            {c.job}
-          </p>
-        )}
+        {/* 스펙 태그 */}
+        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+          {c.age && (
+            <span
+              className="text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: "var(--bg-page)", color: "var(--ink2)" }}
+            >
+              {c.age}세
+            </span>
+          )}
+          {c.gender && (
+            <span
+              className="text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: "var(--bg-page)", color: "var(--ink2)" }}
+            >
+              {c.gender === "남" ? "남" : "여"}
+            </span>
+          )}
+          {c.job && (
+            <span
+              className="text-xs px-2 py-0.5 rounded-full font-medium truncate max-w-[140px]"
+              style={{ background: "var(--green)", color: "var(--ink)" }}
+            >
+              {c.job}
+            </span>
+          )}
+        </div>
+
+        {/* 주요 경력 한 줄 */}
         {c.career1 && (
-          <p className="text-sm" style={{ color: "var(--ink3)" }}>
+          <p className="text-xs mt-1.5 truncate" style={{ color: "var(--ink3)" }}>
             {c.career1}
           </p>
         )}
-        {c.career2 && (
-          <p className="text-sm" style={{ color: "var(--ink3)" }}>
-            {c.career2}
-          </p>
-        )}
       </div>
+
+      {/* 화살표 */}
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
+        <path d="M6 3L11 8L6 13" stroke="var(--line2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </div>
   );
 }
