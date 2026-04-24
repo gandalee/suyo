@@ -125,17 +125,47 @@ function CriminalTab({ disclosure }: { disclosure: CandidateData["disclosure"] }
   );
 }
 
-const LEAN_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  neutral: { label: "공영·통신", color: "#333", bg: "#F0F0F0" },
-  conservative: { label: "보수", color: "#1a3a7a", bg: "#E8EEF8" },
-  progressive: { label: "진보", color: "#7a1a1a", bg: "#F8E8E8" },
+const LEAN_LABEL: Record<string, { label: string; emoji: string; color: string; bg: string }> = {
+  neutral: { label: "공영·통신", emoji: "⚫", color: "#333", bg: "#F0F0F0" },
+  conservative: { label: "보수", emoji: "🔵", color: "#1a3a7a", bg: "#E8EEF8" },
+  progressive: { label: "진보", emoji: "🔴", color: "#7a1a1a", bg: "#F8E8E8" },
 };
 
-function MediaTab({ news }: { news: CandidateData["news"] }) {
-  if (news.length === 0) {
-    return <EmptyState emoji="📰" text="관련 뉴스가 없어요" sub="네이버 뉴스 API 연동 후 업데이트돼요" />;
+interface NaverNewsItem {
+  title: string;
+  url: string;
+  description: string;
+  publishedAt: string;
+  source: string;
+  lean: string;
+  label: string;
+}
+
+function MediaTab({ candidateId }: { candidateId: string }) {
+  const [news, setNews] = useState<NaverNewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/news/${candidateId}`)
+      .then((r) => r.json())
+      .then((d) => setNews(d.items ?? []))
+      .finally(() => setLoading(false));
+  }, [candidateId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <div className="w-8 h-8 rounded-full border-2 animate-spin"
+          style={{ borderColor: "var(--green-dark)", borderTopColor: "transparent" }} />
+      </div>
+    );
   }
-  const grouped = news.reduce<Record<string, typeof news>>((acc, item) => {
+
+  if (news.length === 0) {
+    return <EmptyState emoji="📰" text="분류된 뉴스가 없어요" sub="보수·진보·공영 언론사 기사만 표시해요" />;
+  }
+
+  const grouped = news.reduce<Record<string, NaverNewsItem[]>>((acc, item) => {
     const key = item.lean || "neutral";
     if (!acc[key]) acc[key] = [];
     acc[key].push(item);
@@ -144,24 +174,28 @@ function MediaTab({ news }: { news: CandidateData["news"] }) {
 
   return (
     <div className="flex flex-col gap-6">
+      <p className="text-xs" style={{ color: "var(--ink3)" }}>
+        같은 후보를 언론사별로 어떻게 다르게 보도하는지 비교해요
+      </p>
       {(["neutral", "conservative", "progressive"] as const).map((lean) => {
         const items = grouped[lean];
         if (!items?.length) return null;
         const meta = LEAN_LABEL[lean];
         return (
           <section key={lean}>
-            <span className="text-xs px-2 py-1 rounded-full inline-block mb-3 font-medium"
-              style={{ background: meta.bg, color: meta.color }}>
-              {meta.label}
-            </span>
+            <div className="flex items-center gap-2 mb-3">
+              <span>{meta.emoji}</span>
+              <span className="text-sm font-semibold" style={{ color: meta.color }}>{meta.label}</span>
+              <span className="text-xs" style={{ color: "var(--ink3)" }}>{items.length}건</span>
+            </div>
             <div className="flex flex-col gap-2">
-              {items.map((n) => (
-                <a key={n.id} href={n.url} target="_blank" rel="noopener noreferrer"
+              {items.map((n, i) => (
+                <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
                   className="flex flex-col gap-1 px-4 py-4 rounded-2xl"
                   style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
                   <p className="text-sm font-medium leading-snug" style={{ color: "var(--ink)" }}>{n.title}</p>
-                  <p className="text-xs" style={{ color: "var(--ink3)" }}>
-                    {n.source} · {n.published_at ? new Date(n.published_at).toLocaleDateString("ko") : ""}
+                  <p className="text-xs mt-1" style={{ color: "var(--ink3)" }}>
+                    {n.source} · {n.publishedAt ? new Date(n.publishedAt).toLocaleDateString("ko") : ""}
                   </p>
                 </a>
               ))}
@@ -269,7 +303,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
             {activeTab === "career" && <CareerTab history={data?.history ?? []} />}
             {activeTab === "assets" && <AssetsTab disclosure={data?.disclosure ?? null} />}
             {activeTab === "criminal" && <CriminalTab disclosure={data?.disclosure ?? null} />}
-            {activeTab === "media" && <MediaTab news={data?.news ?? []} />}
+            {activeTab === "media" && <MediaTab candidateId={id} />}
           </div>
         </>
       )}
