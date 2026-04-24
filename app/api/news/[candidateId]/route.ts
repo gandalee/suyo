@@ -39,9 +39,8 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // 동명이인 방지: 이름 + 정당 + 지역 조합으로 검색
-  const district = candidate.sgg_name ?? "";
-  const query = `"${candidate.name}" ${candidate.party ?? ""} ${district}`.trim();
+  // 따옴표로 정확한 이름 검색 (동명이인 최소화)
+  const query = `"${candidate.name}" 선거`;
 
   const res = await fetch(
     `${NAVER_API}?query=${encodeURIComponent(query)}&display=40&sort=date`,
