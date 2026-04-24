@@ -25,10 +25,7 @@ export default function Home() {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
       }
     }
@@ -58,25 +55,18 @@ export default function Home() {
   const sigunguList = selectedSido ? (SIGUNGU_BY_SIDO[selectedSido] ?? []) : [];
 
   return (
-    <main
-      className="flex flex-col min-h-screen px-5"
-      style={{ background: "var(--bg-page)" }}
-    >
+    <main className="flex flex-col min-h-screen px-5" style={{ background: "var(--bg-page)" }}>
       {/* 헤더 */}
       <header className="flex items-center justify-between pt-12 pb-8">
-        <span
-          className="text-2xl font-bold tracking-tight"
-          style={{ color: "var(--ink)" }}
-        >
-          수요
+        <span className="text-2xl font-bold tracking-tight" style={{ color: "var(--ink)" }}>
+          수요<span style={{ color: "#E84040" }}>일</span>
         </span>
         <span className="text-sm" style={{ color: "var(--ink3)" }}>
           D-{Math.ceil((new Date("2026-06-03").getTime() - Date.now()) / 86400000)}
         </span>
       </header>
 
-      {/* 메인 */}
-      <section className="flex flex-col flex-1 justify-center pb-24 gap-10">
+      <div className="flex flex-col gap-8 pb-12">
         {/* 타이틀 */}
         <div className="flex flex-col gap-2">
           <h1
@@ -92,12 +82,29 @@ export default function Home() {
           </p>
         </div>
 
+        {/* 공약 성향 매칭 배너 — 검색보다 위로 */}
+        <button
+          onClick={() => router.push("/match")}
+          className="w-full px-5 py-4 flex items-center gap-4 text-left"
+          style={{
+            background: "var(--green)",
+            borderRadius: 16,
+            border: "1px solid var(--green-dark)",
+          }}
+        >
+          <span className="text-xl">◎</span>
+          <div className="flex-1">
+            <p className="text-sm font-bold" style={{ color: "var(--ink)" }}>공약 성향 매칭 해보기</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--ink2)" }}>14가지 이슈로 나와 가까운 후보 찾기</p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 3L11 8L6 13" stroke="var(--ink2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
         {/* 검색창 */}
         <div className="flex flex-col gap-3">
-          <label
-            className="text-sm font-medium"
-            style={{ color: "var(--ink2)" }}
-          >
+          <label className="text-sm font-medium" style={{ color: "var(--ink2)" }}>
             검색으로 찾기
           </label>
           <div className="relative" ref={dropdownRef}>
@@ -105,10 +112,7 @@ export default function Home() {
               ref={inputRef}
               type="text"
               value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setShowDropdown(true);
-              }}
+              onChange={(e) => { setQuery(e.target.value); setShowDropdown(true); }}
               onFocus={() => setShowDropdown(true)}
               placeholder="강남, 수원, 해운대..."
               className="w-full h-14 px-5 text-base outline-none"
@@ -135,17 +139,10 @@ export default function Home() {
                       className="w-full text-left px-5 py-4 text-base transition-colors"
                       style={{
                         color: "var(--ink)",
-                        borderBottom:
-                          i < suggestions.length - 1
-                            ? "1px solid var(--line)"
-                            : "none",
+                        borderBottom: i < suggestions.length - 1 ? "1px solid var(--line)" : "none",
                       }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = "var(--bg-page)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = "transparent")
-                      }
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-page)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                       onClick={() => selectDistrict(d)}
                     >
                       <span style={{ color: "var(--ink3)" }}>{d.sido}</span>{" "}
@@ -161,27 +158,19 @@ export default function Home() {
         {/* 구분선 */}
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px" style={{ background: "var(--line2)" }} />
-          <span className="text-sm" style={{ color: "var(--ink3)" }}>
-            또는
-          </span>
+          <span className="text-sm" style={{ color: "var(--ink3)" }}>또는</span>
           <div className="flex-1 h-px" style={{ background: "var(--line2)" }} />
         </div>
 
         {/* 드롭다운 */}
         <div className="flex flex-col gap-3">
-          <label
-            className="text-sm font-medium"
-            style={{ color: "var(--ink2)" }}
-          >
+          <label className="text-sm font-medium" style={{ color: "var(--ink2)" }}>
             목록에서 선택하기
           </label>
           <div className="flex flex-col gap-2">
             <select
               value={selectedSido}
-              onChange={(e) => {
-                setSelectedSido(e.target.value);
-                setSelectedSigungu("");
-              }}
+              onChange={(e) => { setSelectedSido(e.target.value); setSelectedSigungu(""); }}
               className="w-full h-14 px-5 text-base outline-none appearance-none"
               style={{
                 background: "var(--white)",
@@ -192,9 +181,7 @@ export default function Home() {
             >
               <option value="">시·도 선택</option>
               {SIDO_LIST.map((sido) => (
-                <option key={sido} value={sido}>
-                  {sido}
-                </option>
+                <option key={sido} value={sido}>{sido}</option>
               ))}
             </select>
             <select
@@ -212,9 +199,7 @@ export default function Home() {
             >
               <option value="">시·군·구 선택</option>
               {sigunguList.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>
@@ -223,14 +208,8 @@ export default function Home() {
             disabled={!selectedSido || !selectedSigungu}
             className="w-full h-14 text-base font-semibold transition-opacity"
             style={{
-              background:
-                selectedSido && selectedSigungu
-                  ? "var(--ink)"
-                  : "var(--line2)",
-              color:
-                selectedSido && selectedSigungu
-                  ? "var(--white)"
-                  : "var(--ink3)",
+              background: selectedSido && selectedSigungu ? "var(--ink)" : "var(--line2)",
+              color: selectedSido && selectedSigungu ? "var(--white)" : "var(--ink3)",
               borderRadius: 99,
               opacity: selectedSido && selectedSigungu ? 1 : 0.6,
             }}
@@ -238,32 +217,10 @@ export default function Home() {
             투표용지 보기
           </button>
         </div>
-      </section>
-
-      {/* 공약 성향 매칭 배너 */}
-      <div className="mb-6">
-        <button
-          onClick={() => router.push("/match")}
-          className="w-full px-5 py-4 flex items-center gap-4 text-left"
-          style={{
-            background: "var(--green)",
-            borderRadius: 16,
-            border: "1px solid var(--green-dark)",
-          }}
-        >
-          <span className="text-2xl">◎</span>
-          <div className="flex-1">
-            <p className="text-sm font-bold" style={{ color: "var(--ink)" }}>공약 성향 매칭 해보기</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--ink2)" }}>14가지 이슈로 나와 가까운 후보 찾기</p>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M7 4L12 9L7 14" stroke="var(--ink2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
       </div>
 
       {/* 하단 */}
-      <footer className="pb-8 text-center">
+      <footer className="mt-auto pb-8 text-center">
         <p className="text-xs" style={{ color: "var(--ink3)" }}>
           한국의 선거는 언제나 수요일 · 2026.6.3
         </p>

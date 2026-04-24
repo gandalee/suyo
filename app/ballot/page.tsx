@@ -125,10 +125,10 @@ function BallotContent() {
       {/* 안내 */}
       <div className="px-5 mt-2">
         <div
-          className="flex gap-3 px-4 py-4 rounded-2xl"
+          className="px-4 py-4 rounded-2xl"
           style={{ background: "var(--ok-bg)" }}
         >
-          <span className="text-lg">💡</span>
+          <p className="text-xs font-semibold mb-1" style={{ color: "var(--ok-ink)" }}>안내</p>
           <p className="text-sm leading-relaxed" style={{ color: "var(--ok-ink)" }}>
             후보자 정보는 5월 15일 등록 마감 이후 업데이트돼요. 그 전까지는 2022년
             선거 데이터로 확인할 수 있어요.

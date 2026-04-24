@@ -181,13 +181,12 @@ function CandidatesContent() {
       {sgId === "20220601" && (
         <div className="px-5 pt-4">
           <div
-            className="flex gap-2 px-4 py-3 rounded-2xl"
+            className="px-4 py-3 rounded-2xl"
             style={{ background: "var(--ok-bg)" }}
           >
-            <span>📅</span>
+            <p className="text-xs font-semibold mb-0.5" style={{ color: "var(--ok-ink)" }}>2022년 데이터</p>
             <p className="text-sm" style={{ color: "var(--ok-ink)" }}>
               2026년 후보는 5/15 등록 마감 후 업데이트돼요.
-              지금은 2022년 데이터예요.
             </p>
           </div>
         </div>
