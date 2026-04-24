@@ -240,6 +240,28 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 공약 성향 매칭 배너 */}
+      <div className="mb-6">
+        <button
+          onClick={() => router.push("/match")}
+          className="w-full px-5 py-4 flex items-center gap-4 text-left"
+          style={{
+            background: "var(--green)",
+            borderRadius: 16,
+            border: "1px solid var(--green-dark)",
+          }}
+        >
+          <span className="text-2xl">🗳️</span>
+          <div className="flex-1">
+            <p className="text-sm font-bold" style={{ color: "var(--ink)" }}>공약 성향 매칭 해보기</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--ink2)" }}>14가지 이슈로 나와 가까운 후보 찾기</p>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M7 4L12 9L7 14" stroke="var(--ink2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+
       {/* 하단 */}
       <footer className="pb-8 text-center">
         <p className="text-xs" style={{ color: "var(--ink3)" }}>
