@@ -123,18 +123,23 @@ function CandidatesContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/candidates?sgTypecode=${type}`)
+    const qs = new URLSearchParams({ sgTypecode: type });
+    if (sido) qs.set("sdName", sido);
+    if (sigungu) qs.set("sggName", sigungu);
+
+    fetch(`/api/candidates?${qs}`)
       .then((r) => r.json())
       .then((data) => {
         setSgId(data.sgId);
-        // 지역 필터링 (sido 기준)
-        const filtered = data.items.filter((c: Candidate) =>
-          c.sggName?.includes(sido.replace("특별시", "").replace("광역시", "").replace("특별자치시", "").replace("특별자치도", "").replace("도", ""))
-        );
-        setCandidates(filtered.length > 0 ? filtered : data.items.slice(0, 20));
+        // API 필터가 안 먹을 경우 클라이언트 보조 필터 (sigungu 우선)
+        const keyword = sigungu || sido;
+        const filtered = keyword
+          ? data.items.filter((c: Candidate) => c.sggName?.includes(sigungu || sido))
+          : data.items;
+        setCandidates(filtered);
       })
       .finally(() => setLoading(false));
-  }, [type, sido]);
+  }, [type, sido, sigungu]);
 
   return (
     <main
