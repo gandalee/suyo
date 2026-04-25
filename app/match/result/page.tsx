@@ -135,19 +135,21 @@ function ResultContent() {
                   </span>
                 )}
                 {!rank && <span />}
-                {/* 후보 상세 보기 링크 — huboid가 없으면 버튼 숨김 */}
-                {candidate.huboid && (
-                  <button
-                    onClick={() => router.push(`/candidates/${candidate.huboid}`)}
-                    className="text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1"
-                    style={{ background: "var(--white)", border: "1px solid var(--line2)", color: "var(--ink2)" }}
-                  >
-                    후보 상세 보기
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                )}
+                {/* 후보 상세 보기 */}
+                <button
+                  onClick={() =>
+                    candidate.huboid
+                      ? router.push(`/candidates/${candidate.huboid}`)
+                      : router.push(`/candidates?sido=서울특별시&sigungu=종로구&type=4&name=구·시·군의장`)
+                  }
+                  className="text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1"
+                  style={{ background: "var(--white)", border: "1px solid var(--line2)", color: "var(--ink2)" }}
+                >
+                  후보 상세 보기
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
               </div>
 
               <div className="flex items-start justify-between gap-3 mb-3">
