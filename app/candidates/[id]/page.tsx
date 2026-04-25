@@ -130,10 +130,11 @@ function CriminalTab({ disclosure }: { disclosure: CandidateData["disclosure"] }
   );
 }
 
-const LEAN_LABEL: Record<string, { label: string; emoji: string; color: string; bg: string }> = {
-  neutral: { label: "공영·통신", emoji: "⚫", color: "#333", bg: "#F0F0F0" },
-  conservative: { label: "보수", emoji: "🔵", color: "#1a3a7a", bg: "#E8EEF8" },
-  progressive: { label: "진보", emoji: "🔴", color: "#7a1a1a", bg: "#F8E8E8" },
+const LEAN_LABEL: Record<string, { label: string; color: string }> = {
+  neutral:      { label: "공영·통신", color: "var(--ink2)" },
+  conservative: { label: "보수",     color: "#1a3a7a" },
+  progressive:  { label: "진보",     color: "#7a1a1a" },
+  other:        { label: "기타 언론", color: "var(--ink3)" },
 };
 
 interface NaverNewsItem {
@@ -167,11 +168,11 @@ function MediaTab({ candidateId }: { candidateId: string }) {
   }
 
   if (news.length === 0) {
-    return <EmptyState emoji="📰" text="분류된 뉴스가 없어요" sub="보수·진보·공영 언론사 기사만 표시해요" />;
+    return <EmptyState emoji="📰" text="관련 뉴스가 없어요" sub="네이버 뉴스 기준으로 표시해요" />;
   }
 
   const grouped = news.reduce<Record<string, NaverNewsItem[]>>((acc, item) => {
-    const key = item.lean || "neutral";
+    const key = item.lean || "other";
     if (!acc[key]) acc[key] = [];
     acc[key].push(item);
     return acc;
@@ -182,16 +183,15 @@ function MediaTab({ candidateId }: { candidateId: string }) {
       <p className="text-xs" style={{ color: "var(--ink3)" }}>
         같은 후보를 언론사별로 어떻게 다르게 보도하는지 비교해요
       </p>
-      {(["neutral", "conservative", "progressive"] as const).map((lean) => {
+      {(["neutral", "conservative", "progressive", "other"] as const).map((lean) => {
         const items = grouped[lean];
         if (!items?.length) return null;
         const meta = LEAN_LABEL[lean];
         return (
           <section key={lean}>
             <div className="flex items-center gap-2 mb-3">
-              <span>{meta.emoji}</span>
               <span className="text-sm font-semibold" style={{ color: meta.color }}>{meta.label}</span>
-              <span className="text-xs" style={{ color: "var(--ink3)" }}>{items.length}건</span>
+              <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "var(--line2)", color: "var(--ink3)" }}>{items.length}</span>
             </div>
             <div className="flex flex-col gap-2">
               {items.map((n, i) => (
@@ -200,7 +200,7 @@ function MediaTab({ candidateId }: { candidateId: string }) {
                   style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
                   <p className="text-sm font-medium leading-snug" style={{ color: "var(--ink)" }}>{n.title}</p>
                   <p className="text-xs mt-1" style={{ color: "var(--ink3)" }}>
-                    {n.source} · {n.publishedAt ? new Date(n.publishedAt).toLocaleDateString("ko") : ""}
+                    {n.label || n.source} · {n.publishedAt ? new Date(n.publishedAt).toLocaleDateString("ko") : ""}
                   </p>
                 </a>
               ))}

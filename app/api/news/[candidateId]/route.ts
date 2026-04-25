@@ -86,7 +86,6 @@ export async function GET(
         label: meta?.label ?? null,
       };
     })
-    .filter((item) => item.lean !== null) // 분류된 언론사만
     .filter((item) => item.title.includes(candidate.name)) // 이름 포함 기사만 (동명이인 제거)
     .slice(0, 30);
 
