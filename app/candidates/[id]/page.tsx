@@ -130,11 +130,11 @@ function CriminalTab({ disclosure }: { disclosure: CandidateData["disclosure"] }
   );
 }
 
-const LEAN_LABEL: Record<string, { label: string; color: string; outlets: string }> = {
-  neutral:      { label: "공영·통신", color: "var(--ink2)", outlets: "KBS·MBC·SBS·YTN·연합뉴스·뉴스1·뉴시스·이데일리·머니투데이·헤럴드경제·서울신문 등" },
-  conservative: { label: "보수",     color: "#1a3a7a",     outlets: "조선일보·중앙일보·동아일보·TV조선·채널A·MBN·문화일보·한국경제·매일경제·서울경제·국민일보 등" },
-  progressive:  { label: "진보",     color: "#7a1a1a",     outlets: "한겨레·경향신문·오마이뉴스·한국일보·프레시안·노컷뉴스·미디어오늘·시사IN 등" },
-  other:        { label: "기타 언론", color: "var(--ink3)", outlets: "위 분류에 포함되지 않은 언론사" },
+const LEAN_LABEL: Record<string, { label: string; color: string; bg: string; outlets: string }> = {
+  neutral:      { label: "공영·통신", color: "var(--ink2)",  bg: "var(--bg-page)",  outlets: "KBS·MBC·SBS·YTN·연합뉴스·뉴스1·뉴시스·이데일리·머니투데이·헤럴드경제·서울신문 등" },
+  conservative: { label: "보수",      color: "#1a3a7a",      bg: "#EEF2FF",         outlets: "조선일보·중앙일보·동아일보·TV조선·채널A·MBN·문화일보·한국경제·매일경제·서울경제·국민일보 등" },
+  progressive:  { label: "진보",      color: "#7a1a1a",      bg: "#FFF0F0",         outlets: "한겨레·경향신문·오마이뉴스·한국일보·프레시안·노컷뉴스·미디어오늘·시사IN 등" },
+  other:        { label: "기타 언론", color: "var(--ink3)",  bg: "var(--white)",    outlets: "위 분류에 포함되지 않은 언론사" },
 };
 
 interface NaverNewsItem {
@@ -149,11 +149,60 @@ interface NaverNewsItem {
 
 const INITIAL_COUNT = 5;
 
+function NewsCard({ n }: { n: NaverNewsItem }) {
+  return (
+    <a href={n.url} target="_blank" rel="noopener noreferrer"
+      className="flex flex-col gap-1 px-3 py-3 rounded-xl"
+      style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+      <p className="text-xs font-medium leading-snug" style={{ color: "var(--ink)" }}>{n.title}</p>
+      <p className="text-[10px] mt-0.5" style={{ color: "var(--ink3)" }}>
+        {n.label || n.source} · {n.publishedAt ? new Date(n.publishedAt).toLocaleDateString("ko") : ""}
+      </p>
+    </a>
+  );
+}
+
+function LeanColumn({
+  lean, items,
+}: {
+  lean: "conservative" | "progressive";
+  items: NaverNewsItem[];
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [showOutlets, setShowOutlets] = useState(false);
+  const meta = LEAN_LABEL[lean];
+  const visible = expanded ? items : items.slice(0, INITIAL_COUNT);
+
+  return (
+    <div className="flex flex-col gap-2 flex-1 min-w-0 p-3 rounded-2xl" style={{ background: meta.bg }}>
+      {/* 헤더 */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span className="text-xs font-bold" style={{ color: meta.color }}>{meta.label}</span>
+        <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.08)", color: meta.color }}>{items.length}</span>
+        <button onClick={() => setShowOutlets((p) => !p)} className="ml-auto text-[10px]" style={{ color: meta.color, opacity: 0.7 }}>
+          {showOutlets ? "닫기" : "기준"}
+        </button>
+      </div>
+      {showOutlets && (
+        <p className="text-[10px] leading-relaxed" style={{ color: meta.color, opacity: 0.8 }}>{meta.outlets}</p>
+      )}
+      {/* 기사 */}
+      {visible.map((n, i) => <NewsCard key={i} n={n} />)}
+      {items.length > INITIAL_COUNT && (
+        <button onClick={() => setExpanded((p) => !p)} className="text-[10px] py-1 font-medium" style={{ color: meta.color, opacity: 0.8 }}>
+          {expanded ? "접기" : `${items.length - INITIAL_COUNT}건 더 보기`}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function MediaTab({ candidateId }: { candidateId: string }) {
   const [news, setNews] = useState<NaverNewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showMore, setShowMore] = useState<Record<string, boolean>>({});
-  const [showOutlets, setShowOutlets] = useState<Record<string, boolean>>({});
+  const [neutralExpanded, setNeutralExpanded] = useState(false);
+  const [neutralOutlets, setNeutralOutlets] = useState(false);
+  const [otherExpanded, setOtherExpanded] = useState(false);
 
   useEffect(() => {
     fetch(`/api/news/${candidateId}`)
@@ -182,67 +231,98 @@ function MediaTab({ candidateId }: { candidateId: string }) {
     return acc;
   }, {});
 
+  const neutral = grouped.neutral ?? [];
+  const conservative = grouped.conservative ?? [];
+  const progressive = grouped.progressive ?? [];
+  const other = grouped.other ?? [];
+  const neutralVisible = neutralExpanded ? neutral : neutral.slice(0, INITIAL_COUNT);
+  const otherVisible = otherExpanded ? other : other.slice(0, INITIAL_COUNT);
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <p className="text-xs" style={{ color: "var(--ink3)" }}>
         같은 후보를 언론사별로 어떻게 다르게 보도하는지 비교해요
       </p>
-      {(["neutral", "conservative", "progressive", "other"] as const).map((lean) => {
-        const items = grouped[lean];
-        if (!items?.length) return null;
-        const meta = LEAN_LABEL[lean];
-        const expanded = showMore[lean];
-        const visible = expanded ? items : items.slice(0, INITIAL_COUNT);
 
-        return (
-          <section key={lean}>
-            {/* 섹션 헤더 */}
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-semibold" style={{ color: meta.color }}>{meta.label}</span>
-              <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "var(--line2)", color: "var(--ink3)" }}>{items.length}</span>
-              <button
-                onClick={() => setShowOutlets((p) => ({ ...p, [lean]: !p[lean] }))}
-                className="text-xs ml-auto"
-                style={{ color: "var(--ink3)" }}
-              >
-                {showOutlets[lean] ? "닫기" : "분류 기준"}
-              </button>
-            </div>
+      {/* 공영·통신 — 상단 전체 폭 */}
+      {neutral.length > 0 && (
+        <section className="p-4 rounded-2xl" style={{ background: LEAN_LABEL.neutral.bg, border: "1px solid var(--line)" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-bold" style={{ color: LEAN_LABEL.neutral.color }}>공영·통신</span>
+            <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "var(--line2)", color: "var(--ink3)" }}>{neutral.length}</span>
+            <button onClick={() => setNeutralOutlets((p) => !p)} className="ml-auto text-xs" style={{ color: "var(--ink3)" }}>
+              {neutralOutlets ? "닫기" : "분류 기준"}
+            </button>
+          </div>
+          {neutralOutlets && (
+            <p className="text-xs mb-3 leading-relaxed" style={{ color: "var(--ink3)" }}>{LEAN_LABEL.neutral.outlets}</p>
+          )}
+          <div className="flex flex-col gap-2">
+            {neutralVisible.map((n, i) => (
+              <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
+                className="flex flex-col gap-1 px-4 py-3 rounded-xl"
+                style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+                <p className="text-sm font-medium leading-snug" style={{ color: "var(--ink)" }}>{n.title}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--ink3)" }}>
+                  {n.label || n.source} · {n.publishedAt ? new Date(n.publishedAt).toLocaleDateString("ko") : ""}
+                </p>
+              </a>
+            ))}
+          </div>
+          {neutral.length > INITIAL_COUNT && (
+            <button onClick={() => setNeutralExpanded((p) => !p)}
+              className="w-full mt-2 py-2 text-sm font-medium"
+              style={{ color: "var(--ink3)", borderTop: "1px solid var(--line)" }}>
+              {neutralExpanded ? "접기" : `${neutral.length - INITIAL_COUNT}건 더 보기`}
+            </button>
+          )}
+        </section>
+      )}
 
-            {/* 언론사 분류 기준 */}
-            {showOutlets[lean] && (
-              <p className="text-xs mb-3 leading-relaxed px-1" style={{ color: "var(--ink3)" }}>
-                {meta.outlets}
-              </p>
-            )}
+      {/* 보수 / 진보 — 2열 나란히 */}
+      {(conservative.length > 0 || progressive.length > 0) && (
+        <div className="flex gap-3">
+          {conservative.length > 0 && <LeanColumn lean="conservative" items={conservative} />}
+          {progressive.length > 0 && <LeanColumn lean="progressive" items={progressive} />}
+        </div>
+      )}
 
-            {/* 기사 목록 */}
-            <div className="flex flex-col gap-2">
-              {visible.map((n, i) => (
-                <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
-                  className="flex flex-col gap-1 px-4 py-4 rounded-2xl"
-                  style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
-                  <p className="text-sm font-medium leading-snug" style={{ color: "var(--ink)" }}>{n.title}</p>
-                  <p className="text-xs mt-1" style={{ color: "var(--ink3)" }}>
-                    {n.label || n.source} · {n.publishedAt ? new Date(n.publishedAt).toLocaleDateString("ko") : ""}
-                  </p>
-                </a>
-              ))}
-            </div>
+      {/* 기타 언론 */}
+      {other.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-semibold" style={{ color: "var(--ink3)" }}>기타 언론</span>
+            <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "var(--line2)", color: "var(--ink3)" }}>{other.length}</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {otherVisible.map((n, i) => (
+              <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
+                className="flex flex-col gap-1 px-4 py-3 rounded-xl"
+                style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+                <p className="text-sm font-medium leading-snug" style={{ color: "var(--ink)" }}>{n.title}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--ink3)" }}>
+                  {n.label || n.source} · {n.publishedAt ? new Date(n.publishedAt).toLocaleDateString("ko") : ""}
+                </p>
+              </a>
+            ))}
+          </div>
+          {other.length > INITIAL_COUNT && (
+            <button onClick={() => setOtherExpanded((p) => !p)}
+              className="w-full mt-2 py-2 text-sm font-medium"
+              style={{ color: "var(--ink3)", borderTop: "1px solid var(--line)" }}>
+              {otherExpanded ? "접기" : `${other.length - INITIAL_COUNT}건 더 보기`}
+            </button>
+          )}
+        </section>
+      )}
 
-            {/* 더 보기 */}
-            {items.length > INITIAL_COUNT && (
-              <button
-                onClick={() => setShowMore((p) => ({ ...p, [lean]: !p[lean] }))}
-                className="w-full mt-2 py-3 text-sm font-medium"
-                style={{ color: "var(--ink3)", borderTop: "1px solid var(--line)" }}
-              >
-                {expanded ? "접기" : `${items.length - INITIAL_COUNT}건 더 보기`}
-              </button>
-            )}
-          </section>
-        );
-      })}
+      {/* 미디어 리터러시 안내 */}
+      <div className="px-4 py-4 rounded-2xl" style={{ background: "#FFFBEB", border: "1px solid #FDE68A" }}>
+        <p className="text-xs font-semibold mb-1" style={{ color: "#92400E" }}>미디어 리터러시</p>
+        <p className="text-xs leading-relaxed" style={{ color: "#78350F" }}>
+          같은 사실도 언론에 따라 다르게 보도됩니다. Suyo는 어느 쪽이 옳다고 판단하지 않습니다. 다양한 시각을 비교하며 스스로 판단해 보세요.
+        </p>
+      </div>
     </div>
   );
 }

@@ -46,6 +46,12 @@ function matchColor(pct: number) {
   return { bar: "var(--ink3)", bg: "var(--line2)", text: "var(--ink3)" };
 }
 
+const RANK_STYLE: Record<number, { label: string; color: string; bg: string; border: string }> = {
+  0: { label: "1위", color: "#92610A", bg: "#FFF8E7", border: "#C8960C" }, // 금
+  1: { label: "2위", color: "#555",    bg: "#F4F4F4", border: "#AAAAAA" }, // 은
+  2: { label: "3위", color: "#7a4820", bg: "#FDF3EC", border: "#C07840" }, // 동
+};
+
 function ResultContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -94,30 +100,55 @@ function ResultContent() {
         </div>
       </header>
 
+      {/* 투표 추천 아님 경고 */}
+      <div className="mb-4 px-4 py-3 rounded-2xl" style={{ background: "#FFF8E7", border: "1px solid #C8960C" }}>
+        <p className="text-xs font-semibold mb-0.5" style={{ color: "#92610A" }}>투표 추천이 아닙니다</p>
+        <p className="text-xs leading-relaxed" style={{ color: "#92610A" }}>
+          공약 일치율은 참고 자료입니다. 후보의 인물·경력·뉴스를 함께 살펴보고 스스로 판단해 주세요.
+        </p>
+      </div>
+
       {/* 매칭 결과 */}
       <section className="flex flex-col gap-4 mb-8">
         {ranked.map((candidate, idx) => {
           const pct = candidate.score;
           const colors = matchColor(pct);
-          const isTop = idx === 0;
+          const rank = RANK_STYLE[idx];
 
           return (
             <div
               key={candidate.candidateName}
               className="p-5 rounded-2xl"
               style={{
-                background: isTop ? colors.bg : "var(--white)",
-                border: `2px solid ${isTop ? colors.bar : "var(--line)"}`,
+                background: rank?.bg ?? "var(--white)",
+                border: `2px solid ${rank?.border ?? "var(--line)"}`,
               }}
             >
-              {isTop && (
-                <span
-                  className="text-xs font-bold px-2.5 py-1 rounded-full mb-3 inline-block"
-                  style={{ background: colors.bar, color: "var(--white)" }}
-                >
-                  ✨ 가장 가까워요
-                </span>
-              )}
+              {/* 순위 배지 */}
+              <div className="flex items-center justify-between mb-3">
+                {rank && (
+                  <span
+                    className="text-xs font-bold px-2.5 py-1 rounded-full"
+                    style={{ background: rank.border, color: "var(--white)" }}
+                  >
+                    {rank.label}
+                  </span>
+                )}
+                {!rank && <span />}
+                {/* 후보 상세 보기 링크 — huboid가 없으면 버튼 숨김 */}
+                {candidate.huboid && (
+                  <button
+                    onClick={() => router.push(`/candidates/${candidate.huboid}`)}
+                    className="text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1"
+                    style={{ background: "var(--white)", border: "1px solid var(--line2)", color: "var(--ink2)" }}
+                  >
+                    후보 상세 보기
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                )}
+              </div>
 
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
@@ -135,8 +166,8 @@ function ResultContent() {
                   <p className="text-sm mt-0.5" style={{ color: "var(--ink3)" }}>{candidate.party}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <span className="text-3xl font-black" style={{ color: colors.text }}>{pct}</span>
-                  <span className="text-base font-semibold" style={{ color: colors.text }}>%</span>
+                  <span className="text-3xl font-black" style={{ color: rank?.color ?? colors.text }}>{pct}</span>
+                  <span className="text-base font-semibold" style={{ color: rank?.color ?? colors.text }}>%</span>
                 </div>
               </div>
 
@@ -144,7 +175,7 @@ function ResultContent() {
               <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--line2)" }}>
                 <div
                   className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${pct}%`, background: colors.bar }}
+                  style={{ width: `${pct}%`, background: rank?.border ?? colors.bar }}
                 />
               </div>
 

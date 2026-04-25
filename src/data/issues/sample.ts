@@ -10,6 +10,7 @@ export interface CandidateStance {
   candidateName: string;
   party: string;
   symbol: string;
+  huboid?: string; // 후보 상세 페이지 연결용 (2026 데이터 업데이트 후 연결)
   stances: Record<number, Stance>; // issueId → stance
 }
 

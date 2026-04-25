@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 
 interface Candidate {
   huboid: string;
@@ -18,15 +18,25 @@ interface Candidate {
   status: string;
 }
 
-function CandidateCard({ c }: { c: Candidate }) {
+// ── 후보 카드 ─────────────────────────────────────
+
+function CandidateCard({
+  c,
+  selected,
+  onToggle,
+}: {
+  c: Candidate;
+  selected: boolean;
+  onToggle: (c: Candidate) => void;
+}) {
   const router = useRouter();
   return (
     <div
       className="flex items-center gap-4 px-5 py-5 cursor-pointer active:opacity-70 transition-opacity"
       onClick={() => router.push(`/candidates/${c.huboid}`)}
       style={{
-        background: "var(--white)",
-        border: "1px solid var(--line)",
+        background: selected ? "var(--green)" : "var(--white)",
+        border: `1px solid ${selected ? "var(--green-dark)" : "var(--line)"}`,
         borderRadius: 20,
       }}
     >
@@ -48,7 +58,6 @@ function CandidateCard({ c }: { c: Candidate }) {
 
       {/* 본문 */}
       <div className="flex-1 min-w-0">
-        {/* 이름 + 정당 */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-base font-bold" style={{ color: "var(--ink)" }}>
             {c.name}
@@ -66,7 +75,6 @@ function CandidateCard({ c }: { c: Candidate }) {
           {c.jdName}
         </p>
 
-        {/* 스펙 태그 */}
         <div className="flex items-center gap-1.5 mt-2 flex-wrap">
           {c.age && (
             <span
@@ -87,14 +95,13 @@ function CandidateCard({ c }: { c: Candidate }) {
           {c.job && (
             <span
               className="text-xs px-2 py-0.5 rounded-full font-medium truncate max-w-[140px]"
-              style={{ background: "var(--green)", color: "var(--ink)" }}
+              style={{ background: selected ? "rgba(255,255,255,0.6)" : "var(--green)", color: "var(--ink)" }}
             >
               {c.job}
             </span>
           )}
         </div>
 
-        {/* 주요 경력 한 줄 */}
         {c.career1 && (
           <p className="text-xs mt-1.5 truncate" style={{ color: "var(--ink3)" }}>
             {c.career1}
@@ -102,13 +109,117 @@ function CandidateCard({ c }: { c: Candidate }) {
         )}
       </div>
 
-      {/* 화살표 */}
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-        <path d="M6 3L11 8L6 13" stroke="var(--line2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      {/* + / ✓ 버튼 */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(c);
+        }}
+        className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full transition-all"
+        style={{
+          background: selected ? "var(--ink)" : "var(--bg-page)",
+          border: `1.5px solid ${selected ? "var(--ink)" : "var(--line2)"}`,
+        }}
+        aria-label={selected ? "비교 해제" : "비교 추가"}
+      >
+        {selected ? (
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 2.5V11.5M2.5 7H11.5" stroke="var(--ink3)" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        )}
+      </button>
     </div>
   );
 }
+
+// ── 비교 바텀시트 ─────────────────────────────────────
+
+function CompareSheet({ pair, onClose }: { pair: [Candidate, Candidate]; onClose: () => void }) {
+  const [a, b] = pair;
+  const rows: { label: string; va: string; vb: string }[] = [
+    { label: "정당", va: a.jdName || "-", vb: b.jdName || "-" },
+    { label: "나이", va: a.age ? `${a.age}세` : "-", vb: b.age ? `${b.age}세` : "-" },
+    { label: "성별", va: a.gender === "남" ? "남성" : a.gender === "여" ? "여성" : "-", vb: b.gender === "남" ? "남성" : b.gender === "여" ? "여성" : "-" },
+    { label: "직업", va: a.job || "-", vb: b.job || "-" },
+    { label: "최종 학력", va: a.edu || "-", vb: b.edu || "-" },
+    { label: "주요 경력", va: a.career1 || "-", vb: b.career1 || "-" },
+    { label: "2번째 경력", va: a.career2 || "-", vb: b.career2 || "-" },
+  ].filter((r) => r.va !== "-" || r.vb !== "-");
+
+  return (
+    <>
+      {/* 딤 배경 */}
+      <div
+        className="fixed inset-0 z-40"
+        style={{ background: "rgba(0,0,0,0.4)" }}
+        onClick={onClose}
+      />
+      {/* 시트 */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
+        style={{ background: "var(--white)", maxHeight: "80vh" }}
+      >
+        {/* 핸들 */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 rounded-full" style={{ background: "var(--line2)" }} />
+        </div>
+
+        {/* 헤더: 두 후보 이름 */}
+        <div className="grid grid-cols-[60px_1fr_1fr] gap-0 px-5 pb-3">
+          <div />
+          {[a, b].map((c) => (
+            <div key={c.huboid} className="text-center">
+              <div
+                className="inline-flex flex-col items-center justify-center w-10 h-10 rounded-xl mx-auto mb-1"
+                style={{ background: "var(--green)" }}
+              >
+                <span className="text-[10px]" style={{ color: "var(--ink3)" }}>기호</span>
+                <span className="text-sm font-black leading-tight" style={{ color: "var(--ink)" }}>{c.giho}</span>
+              </div>
+              <p className="text-sm font-bold" style={{ color: "var(--ink)" }}>{c.name}</p>
+              <p className="text-[11px]" style={{ color: "var(--ink3)" }}>{c.jdName}</p>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ borderTop: "1px solid var(--line)", overflowY: "auto", maxHeight: "calc(80vh - 160px)" }}>
+          {rows.map((row, i) => (
+            <div
+              key={row.label}
+              className="grid grid-cols-[60px_1fr_1fr] gap-0"
+              style={{ borderBottom: "1px solid var(--line)", background: i % 2 === 0 ? "var(--bg-page)" : "var(--white)" }}
+            >
+              <div className="px-3 py-3 flex items-center">
+                <span className="text-[11px] font-semibold" style={{ color: "var(--ink3)" }}>{row.label}</span>
+              </div>
+              {[row.va, row.vb].map((v, ci) => (
+                <div key={ci} className="px-3 py-3 text-center flex items-center justify-center" style={{ borderLeft: "1px solid var(--line)" }}>
+                  <span className="text-xs leading-snug text-center" style={{ color: "var(--ink)" }}>{v}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="px-5 py-4" style={{ borderTop: "1px solid var(--line)" }}>
+          <button
+            onClick={onClose}
+            className="w-full h-12 text-sm font-medium rounded-2xl"
+            style={{ background: "var(--bg-page)", color: "var(--ink2)" }}
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── 메인 컨텐츠 ─────────────────────────────────────
 
 function CandidatesContent() {
   const params = useSearchParams();
@@ -122,10 +233,21 @@ function CandidatesContent() {
   const [sgId, setSgId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // 광역 선거(시도지사·교육감·시도의원)는 sigungu 필터 불필요
-    const isWide = ["3", "11", "5"].includes(type);
+  // 비교 모드
+  const [compareList, setCompareList] = useState<Candidate[]>([]);
+  const [showSheet, setShowSheet] = useState(false);
 
+  const toggleCompare = useCallback((c: Candidate) => {
+    setCompareList((prev) => {
+      const exists = prev.find((p) => p.huboid === c.huboid);
+      if (exists) return prev.filter((p) => p.huboid !== c.huboid);
+      if (prev.length >= 2) return prev; // 최대 2명
+      return [...prev, c];
+    });
+  }, []);
+
+  useEffect(() => {
+    const isWide = ["3", "11", "5"].includes(type);
     const qs = new URLSearchParams({ sgTypecode: type });
     if (sido) qs.set("sdName", sido);
     if (sigungu && !isWide) qs.set("sggName", sigungu);
@@ -134,7 +256,6 @@ function CandidatesContent() {
       .then((r) => r.json())
       .then((data) => {
         setSgId(data.sgId);
-        // 클라이언트 보조 필터: 광역은 sido, 기초는 sigungu 기준
         const keyword = isWide ? sido : sigungu || sido;
         const filtered = keyword
           ? data.items.filter((c: Candidate) => c.sggName?.includes(isWide ? sido : sigungu || sido))
@@ -147,7 +268,7 @@ function CandidatesContent() {
   return (
     <main
       className="flex flex-col min-h-screen"
-      style={{ background: "var(--bg-page)" }}
+      style={{ background: "var(--bg-page)", paddingBottom: compareList.length > 0 ? 96 : 0 }}
     >
       {/* 헤더 */}
       <header
@@ -161,16 +282,10 @@ function CandidatesContent() {
           aria-label="뒤로"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path
-              d="M11 14L6 9L11 4"
-              stroke="var(--ink)"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <path d="M11 14L6 9L11 4" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <div>
+        <div className="flex-1">
           <p className="text-xs" style={{ color: "var(--ink3)" }}>
             {sido} {sigungu}
           </p>
@@ -178,20 +293,35 @@ function CandidatesContent() {
             {name} 후보
           </h1>
         </div>
+        {compareList.length > 0 && (
+          <button
+            onClick={() => setCompareList([])}
+            className="text-xs px-3 py-1.5 rounded-full"
+            style={{ background: "var(--line2)", color: "var(--ink3)" }}
+          >
+            선택 초기화
+          </button>
+        )}
       </header>
 
       {/* 2022 데이터 안내 */}
       {sgId === "20220601" && (
         <div className="px-5 pt-4">
-          <div
-            className="px-4 py-3 rounded-2xl"
-            style={{ background: "var(--ok-bg)" }}
-          >
+          <div className="px-4 py-3 rounded-2xl" style={{ background: "var(--ok-bg)" }}>
             <p className="text-xs font-semibold mb-0.5" style={{ color: "var(--ok-ink)" }}>2022년 데이터</p>
             <p className="text-sm" style={{ color: "var(--ok-ink)" }}>
               2026년 후보는 5/15 등록 마감 후 업데이트돼요.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* 비교 힌트 */}
+      {!loading && candidates.length > 1 && compareList.length === 0 && (
+        <div className="px-5 pt-4">
+          <p className="text-xs" style={{ color: "var(--ink3)" }}>
+            + 버튼으로 최대 2명을 골라 나란히 비교해보세요
+          </p>
         </div>
       )}
 
@@ -219,11 +349,66 @@ function CandidatesContent() {
               총 {candidates.length}명 · 기호순
             </p>
             {candidates.map((c) => (
-              <CandidateCard key={c.huboid} c={c} />
+              <CandidateCard
+                key={c.huboid}
+                c={c}
+                selected={compareList.some((p) => p.huboid === c.huboid)}
+                onToggle={toggleCompare}
+              />
             ))}
           </>
         )}
       </section>
+
+      {/* 하단 비교 바 */}
+      {compareList.length > 0 && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between px-5 py-4 gap-3"
+          style={{ background: "var(--ink)", borderTop: "1px solid rgba(255,255,255,0.1)" }}
+        >
+          {/* 선택된 후보 이름 */}
+          <div className="flex items-center gap-2 min-w-0">
+            {compareList.map((c) => (
+              <span
+                key={c.huboid}
+                className="text-sm font-semibold truncate"
+                style={{ color: "var(--white)" }}
+              >
+                {c.name}
+              </span>
+            ))}
+            {compareList.length === 1 && (
+              <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+                · 1명 더 선택하세요
+              </span>
+            )}
+          </div>
+          {/* 나란히 보기 */}
+          <button
+            onClick={() => compareList.length === 2 && setShowSheet(true)}
+            disabled={compareList.length < 2}
+            className="flex-shrink-0 px-5 h-11 rounded-2xl text-sm font-semibold flex items-center gap-1.5 transition-opacity"
+            style={{
+              background: compareList.length === 2 ? "var(--green)" : "rgba(255,255,255,0.15)",
+              color: compareList.length === 2 ? "var(--ink)" : "rgba(255,255,255,0.4)",
+              opacity: compareList.length === 2 ? 1 : 0.7,
+            }}
+          >
+            나란히 보기
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M5.5 2.5L9 6L5.5 9.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* 바텀시트 */}
+      {showSheet && compareList.length === 2 && (
+        <CompareSheet
+          pair={compareList as [Candidate, Candidate]}
+          onClose={() => setShowSheet(false)}
+        />
+      )}
     </main>
   );
 }
