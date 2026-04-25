@@ -43,7 +43,7 @@ export async function GET(
   const query = `"${candidate.name}" 선거`;
 
   const res = await fetch(
-    `${NAVER_API}?query=${encodeURIComponent(query)}&display=40&sort=date`,
+    `${NAVER_API}?query=${encodeURIComponent(query)}&display=100&sort=date`,
     {
       headers: {
         "X-Naver-Client-Id": process.env.NAVER_CLIENT_ID!,
@@ -86,8 +86,7 @@ export async function GET(
         label: meta?.label ?? null,
       };
     })
-    .filter((item) => item.title.includes(candidate.name)) // 이름 포함 기사만 (동명이인 제거)
-    .slice(0, 30);
+    .filter((item) => item.title.includes(candidate.name)); // 이름 포함 기사만 (동명이인 제거)
 
   return NextResponse.json({
     candidateName: candidate.name,
