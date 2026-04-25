@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, use } from "react";
 
 const TABS = [
-  { key: "pledge", label: "공약" },
+  { key: "media", label: "뉴스 비교" },
   { key: "career", label: "경력" },
+  { key: "pledge", label: "공약" },
   { key: "assets", label: "재산·병역" },
   { key: "criminal", label: "전과·소송" },
-  { key: "media", label: "미디어렌즈" },
 ];
 
 interface CandidateData {
@@ -262,7 +262,7 @@ function EmptyState({ emoji, text, sub }: { emoji: string; text: string; sub: st
 export default function CandidateDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("pledge");
+  const [activeTab, setActiveTab] = useState("media");
   const [data, setData] = useState<CandidateData | null>(null);
   const [loading, setLoading] = useState(true);
 
