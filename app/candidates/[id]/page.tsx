@@ -21,19 +21,101 @@ interface CandidateData {
 
 // ── 탭별 컴포넌트 ─────────────────────────────────────
 
-function PledgeTab({ pledges }: { pledges: CandidateData["pledges"] }) {
-  if (pledges.length === 0) {
-    return <EmptyState emoji="📋" text="공약 정보가 아직 없어요" sub="5월 15일 후보 등록 마감 후 업데이트돼요" />;
-  }
+interface PledgeReviewData {
+  articles: Array<{ title: string; description: string; url: string; pubDate: string }>;
+}
+
+function PledgeReviewSection({ candidateId }: { candidateId: string }) {
+  const [data, setData] = useState<PledgeReviewData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/pledge-review/${candidateId}`)
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, [candidateId]);
+
+  const INITIAL = 3;
+  const articles = data?.articles ?? [];
+  const visible = expanded ? articles : articles.slice(0, INITIAL);
+
+  return (
+    <div className="mt-6 pt-6" style={{ borderTop: "1px solid var(--line)" }}>
+      <div className="flex items-center gap-2 mb-3">
+        <h3 className="text-sm font-semibold" style={{ color: "var(--ink3)" }}>
+          공약 관련 뉴스
+        </h3>
+        {/* TODO: Anthropic API 키 추가 후 AI 요약 기능 활성화 */}
+      </div>
+
+      {loading ? (
+        <div className="flex items-center gap-2 px-4 py-4 rounded-2xl"
+          style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+          <div className="w-4 h-4 rounded-full border-2 animate-spin flex-shrink-0"
+            style={{ borderColor: "var(--green-dark)", borderTopColor: "transparent" }} />
+          <p className="text-sm" style={{ color: "var(--ink3)" }}>뉴스 불러오는 중...</p>
+        </div>
+      ) : articles.length === 0 ? (
+        <div className="px-4 py-4 rounded-2xl"
+          style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+          <p className="text-sm" style={{ color: "var(--ink3)" }}>관련 뉴스가 없어요</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {visible.map((a, i) => (
+            <a key={i} href={a.url} target="_blank" rel="noopener noreferrer"
+              className="px-4 py-3 rounded-2xl flex flex-col gap-1"
+              style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+              <p className="text-sm font-medium leading-snug" style={{ color: "var(--ink)" }}>{a.title}</p>
+              {a.description && (
+                <p className="text-xs leading-relaxed line-clamp-2" style={{ color: "var(--ink3)" }}>{a.description}</p>
+              )}
+              <p className="text-[10px] mt-0.5" style={{ color: "var(--ink3)" }}>
+                {a.pubDate ? new Date(a.pubDate).toLocaleDateString("ko") : ""}
+              </p>
+            </a>
+          ))}
+          {articles.length > INITIAL && (
+            <button
+              onClick={() => setExpanded((p) => !p)}
+              className="w-full py-2.5 text-sm font-medium"
+              style={{ color: "var(--ink3)", borderTop: "1px solid var(--line)" }}
+            >
+              {expanded ? "접기" : `${articles.length - INITIAL}건 더 보기`}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PledgeTab({ pledges, candidateId }: { pledges: CandidateData["pledges"]; candidateId: string }) {
   return (
     <div className="flex flex-col gap-3">
-      {pledges.map((p, i) => (
-        <div key={i} className="p-5 rounded-2xl" style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
-          {p.category && <span className="text-xs px-2 py-1 rounded-full mb-2 inline-block" style={{ background: "var(--ok-bg)", color: "var(--ok-ink)" }}>{p.category}</span>}
-          <p className="text-base font-semibold" style={{ color: "var(--ink)" }}>{p.title}</p>
-          {p.detail && <p className="text-sm mt-2 leading-relaxed" style={{ color: "var(--ink2)" }}>{p.detail}</p>}
+      {/* 언론이 본 공약 이행 */}
+      <PledgeReviewSection candidateId={candidateId} />
+
+      {/* 공약 목록 */}
+      {pledges.length > 0 ? (
+        <div className="flex flex-col gap-3 mt-2">
+          <h3 className="text-sm font-semibold" style={{ color: "var(--ink3)" }}>등록 공약</h3>
+          {pledges.map((p, i) => (
+            <div key={i} className="p-5 rounded-2xl" style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+              {p.category && <span className="text-xs px-2 py-1 rounded-full mb-2 inline-block" style={{ background: "var(--ok-bg)", color: "var(--ok-ink)" }}>{p.category}</span>}
+              <p className="text-base font-semibold" style={{ color: "var(--ink)" }}>{p.title}</p>
+              {p.detail && <p className="text-sm mt-2 leading-relaxed" style={{ color: "var(--ink2)" }}>{p.detail}</p>}
+            </div>
+          ))}
         </div>
-      ))}
+      ) : (
+        <div className="mt-2">
+          <EmptyState emoji="📋" text="등록 공약이 없어요" sub="5월 15일 후보 등록 마감 후 업데이트돼요" />
+        </div>
+      )}
     </div>
   );
 }
@@ -438,7 +520,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
 
           {/* 탭 컨텐츠 */}
           <div className="px-5 py-6 flex-1">
-            {activeTab === "pledge" && <PledgeTab pledges={data?.pledges ?? []} />}
+            {activeTab === "pledge" && <PledgeTab pledges={data?.pledges ?? []} candidateId={id} />}
             {activeTab === "career" && <CareerTab history={data?.history ?? []} candidate={data?.candidate ?? {}} />}
             {activeTab === "assets" && <AssetsTab disclosure={data?.disclosure ?? null} />}
             {activeTab === "criminal" && <CriminalTab disclosure={data?.disclosure ?? null} />}
