@@ -161,20 +161,23 @@ function CompareSheet({ pair, onClose }: { pair: [Candidate, Candidate]; onClose
       {/* 시트 */}
       <div
         className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
-        style={{ background: "var(--white)", maxHeight: "80vh" }}
+        style={{ background: "var(--white)", maxHeight: "82vh", display: "flex", flexDirection: "column" }}
       >
         {/* 핸들 */}
-        <div className="flex justify-center pt-3 pb-2">
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
           <div className="w-10 h-1 rounded-full" style={{ background: "var(--line2)" }} />
         </div>
 
-        {/* 헤더: 두 후보 이름 */}
-        <div className="grid grid-cols-[auto_1fr_1fr] gap-0 px-5 pb-3">
-          <div className="min-w-[64px]" />
-          {[a, b].map((c) => (
-            <div key={c.huboid} className="text-center">
+        {/* 헤더: 두 후보 이름 — 각각 50% */}
+        <div className="grid grid-cols-2 flex-shrink-0" style={{ borderBottom: "1px solid var(--line)" }}>
+          {[a, b].map((c, ci) => (
+            <div
+              key={c.huboid}
+              className="flex flex-col items-center py-4 gap-1"
+              style={{ borderLeft: ci === 1 ? "1px solid var(--line)" : "none" }}
+            >
               <div
-                className="inline-flex flex-col items-center justify-center w-10 h-10 rounded-xl mx-auto mb-1"
+                className="flex flex-col items-center justify-center w-10 h-10 rounded-xl mb-0.5"
                 style={{ background: "var(--green)" }}
               >
                 <span className="text-[10px]" style={{ color: "var(--ink3)" }}>기호</span>
@@ -186,26 +189,32 @@ function CompareSheet({ pair, onClose }: { pair: [Candidate, Candidate]; onClose
           ))}
         </div>
 
-        <div style={{ borderTop: "1px solid var(--line)", overflowY: "auto", maxHeight: "calc(80vh - 160px)" }}>
-          {rows.map((row, i) => (
-            <div
-              key={row.label}
-              className="grid grid-cols-[auto_1fr_1fr] gap-0"
-              style={{ borderBottom: "1px solid var(--line)", background: i % 2 === 0 ? "var(--bg-page)" : "var(--white)" }}
-            >
-              <div className="px-3 py-3 flex items-center min-w-[64px]">
-                <span className="text-[11px] font-semibold whitespace-nowrap" style={{ color: "var(--ink3)" }}>{row.label}</span>
+        {/* 비교 행들 — 스크롤 영역 */}
+        <div className="overflow-y-auto flex-1">
+          {rows.map((row) => (
+            <div key={row.label} style={{ borderBottom: "1px solid var(--line)" }}>
+              {/* 라벨 행 — 전체 폭 */}
+              <div className="px-4 py-1.5" style={{ background: "var(--bg-page)" }}>
+                <span className="text-[11px] font-semibold" style={{ color: "var(--ink3)" }}>{row.label}</span>
               </div>
-              {[row.va, row.vb].map((v, ci) => (
-                <div key={ci} className="px-3 py-3 text-center flex items-center justify-center" style={{ borderLeft: "1px solid var(--line)" }}>
-                  <span className="text-xs leading-snug text-center" style={{ color: "var(--ink)" }}>{v}</span>
-                </div>
-              ))}
+              {/* 값 행 — 50% / 50% */}
+              <div className="grid grid-cols-2">
+                {[row.va, row.vb].map((v, ci) => (
+                  <div
+                    key={ci}
+                    className="px-4 py-3"
+                    style={{ borderLeft: ci === 1 ? "1px solid var(--line)" : "none" }}
+                  >
+                    <p className="text-sm leading-snug" style={{ color: "var(--ink)" }}>{v}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="px-5 py-4" style={{ borderTop: "1px solid var(--line)" }}>
+        {/* 닫기 버튼 */}
+        <div className="px-5 py-4 flex-shrink-0" style={{ borderTop: "1px solid var(--line)" }}>
           <button
             onClick={onClose}
             className="w-full h-12 text-sm font-medium rounded-2xl"
