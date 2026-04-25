@@ -169,8 +169,8 @@ function CompareSheet({ pair, onClose }: { pair: [Candidate, Candidate]; onClose
         </div>
 
         {/* 헤더: 두 후보 이름 */}
-        <div className="grid grid-cols-[60px_1fr_1fr] gap-0 px-5 pb-3">
-          <div />
+        <div className="grid grid-cols-[auto_1fr_1fr] gap-0 px-5 pb-3">
+          <div className="min-w-[64px]" />
           {[a, b].map((c) => (
             <div key={c.huboid} className="text-center">
               <div
@@ -190,11 +190,11 @@ function CompareSheet({ pair, onClose }: { pair: [Candidate, Candidate]; onClose
           {rows.map((row, i) => (
             <div
               key={row.label}
-              className="grid grid-cols-[60px_1fr_1fr] gap-0"
+              className="grid grid-cols-[auto_1fr_1fr] gap-0"
               style={{ borderBottom: "1px solid var(--line)", background: i % 2 === 0 ? "var(--bg-page)" : "var(--white)" }}
             >
-              <div className="px-3 py-3 flex items-center">
-                <span className="text-[11px] font-semibold" style={{ color: "var(--ink3)" }}>{row.label}</span>
+              <div className="px-3 py-3 flex items-center min-w-[64px]">
+                <span className="text-[11px] font-semibold whitespace-nowrap" style={{ color: "var(--ink3)" }}>{row.label}</span>
               </div>
               {[row.va, row.vb].map((v, ci) => (
                 <div key={ci} className="px-3 py-3 text-center flex items-center justify-center" style={{ borderLeft: "1px solid var(--line)" }}>
