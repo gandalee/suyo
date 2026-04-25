@@ -160,8 +160,17 @@ function CompareSheet({ pair, onClose }: { pair: [Candidate, Candidate]; onClose
       />
       {/* 시트 */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
-        style={{ background: "var(--white)", maxHeight: "82vh", display: "flex", flexDirection: "column" }}
+        className="fixed bottom-0 z-50 rounded-t-3xl overflow-hidden"
+        style={{
+          background: "var(--white)",
+          maxHeight: "82vh",
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          maxWidth: 430,
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
       >
         {/* 핸들 */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -372,8 +381,15 @@ function CandidatesContent() {
       {/* 하단 비교 바 */}
       {compareList.length > 0 && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between px-5 py-4 gap-3"
-          style={{ background: "var(--ink)", borderTop: "1px solid rgba(255,255,255,0.1)" }}
+          className="fixed bottom-0 z-30 flex items-center justify-between px-5 py-4 gap-3"
+          style={{
+            background: "var(--ink)",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            width: "100%",
+            maxWidth: 430,
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
         >
           {/* 선택된 후보 이름 */}
           <div className="flex items-center gap-2 min-w-0">
