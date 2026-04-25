@@ -123,18 +123,21 @@ function CandidatesContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 광역 선거(시도지사·교육감·시도의원)는 sigungu 필터 불필요
+    const isWide = ["3", "11", "5"].includes(type);
+
     const qs = new URLSearchParams({ sgTypecode: type });
     if (sido) qs.set("sdName", sido);
-    if (sigungu) qs.set("sggName", sigungu);
+    if (sigungu && !isWide) qs.set("sggName", sigungu);
 
     fetch(`/api/candidates?${qs}`)
       .then((r) => r.json())
       .then((data) => {
         setSgId(data.sgId);
-        // API 필터가 안 먹을 경우 클라이언트 보조 필터 (sigungu 우선)
-        const keyword = sigungu || sido;
+        // 클라이언트 보조 필터: 광역은 sido, 기초는 sigungu 기준
+        const keyword = isWide ? sido : sigungu || sido;
         const filtered = keyword
-          ? data.items.filter((c: Candidate) => c.sggName?.includes(sigungu || sido))
+          ? data.items.filter((c: Candidate) => c.sggName?.includes(isWide ? sido : sigungu || sido))
           : data.items;
         setCandidates(filtered);
       })
