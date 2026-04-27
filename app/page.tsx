@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useBookmarks } from "@/src/hooks/useBookmarks";
 import {
   searchDistricts,
   SIDO_LIST,
@@ -104,6 +105,66 @@ function ElectionTimeline() {
   );
 }
 
+function BookmarksSection() {
+  const router = useRouter();
+  const { bookmarks, remove } = useBookmarks();
+
+  if (bookmarks.length === 0) return null;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-semibold" style={{ color: "var(--ink2)" }}>
+          저장한 후보
+        </p>
+        <span className="text-xs px-2 py-0.5 rounded-full"
+          style={{ background: "var(--line2)", color: "var(--ink3)" }}>
+          {bookmarks.length}명
+        </span>
+      </div>
+      <div className="flex flex-col gap-2">
+        {bookmarks.map((b) => (
+          <div
+            key={b.huboid}
+            className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+            style={{ background: "var(--white)", border: "1px solid var(--line)" }}
+          >
+            {/* 기호 아바타 */}
+            <div
+              className="flex-shrink-0 flex flex-col items-center justify-center"
+              style={{ width: 40, height: 40, borderRadius: 12, background: "var(--green)" }}
+            >
+              <span className="text-[9px]" style={{ color: "var(--ink3)" }}>기호</span>
+              <span className="text-sm font-black leading-tight" style={{ color: "var(--ink)" }}>
+                {b.giho}
+              </span>
+            </div>
+            {/* 이름/정당 */}
+            <button
+              className="flex-1 text-left min-w-0"
+              onClick={() => router.push(`/candidates/${b.huboid}`)}
+            >
+              <p className="text-sm font-bold truncate" style={{ color: "var(--ink)" }}>{b.name}</p>
+              <p className="text-xs truncate" style={{ color: "var(--ink3)" }}>{b.party}</p>
+            </button>
+            {/* 삭제 */}
+            <button
+              onClick={() => remove(b.huboid)}
+              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
+              style={{ background: "var(--bg-page)" }}
+              aria-label="삭제"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 2L10 10M10 2L2 10" stroke="var(--ink3)" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -176,6 +237,9 @@ export default function Home() {
             지역을 선택하면 후보자 정보를 볼 수 있어요
           </p>
         </div>
+
+        {/* 저장한 후보 */}
+        <BookmarksSection />
 
         {/* 선거 일정 타임라인 */}
         <ElectionTimeline />

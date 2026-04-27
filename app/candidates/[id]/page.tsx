@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, use } from "react";
+import { useBookmarks } from "@/src/hooks/useBookmarks";
 
 const TABS = [
   { key: "media", label: "뉴스 비교" },
@@ -427,6 +428,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
   const [activeTab, setActiveTab] = useState("media");
   const [data, setData] = useState<CandidateData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isBookmarked, toggle } = useBookmarks();
 
   useEffect(() => {
     fetch(`/api/candidate/${id}`)
@@ -449,12 +451,41 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
             <path d="M11 14L6 9L11 4" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <div>
+        <div className="flex-1">
           <p className="text-xs" style={{ color: "var(--ink3)" }}>{String(c?.party ?? "")}</p>
           <h1 className="text-lg font-bold" style={{ color: "var(--ink)" }}>
             {loading ? "불러오는 중..." : String(c?.name ?? "")}
           </h1>
         </div>
+        {/* 북마크 버튼 */}
+        {!loading && c && (
+          <button
+            onClick={() => toggle({
+              huboid: id,
+              name: String(c.name ?? ""),
+              party: String(c.party ?? ""),
+              giho: String(c.symbol ?? ""),
+              sggName: String(c.sgg_name ?? c.party ?? ""),
+              electionName: "",
+            })}
+            className="flex items-center justify-center w-9 h-9 rounded-full flex-shrink-0"
+            style={{
+              background: isBookmarked(id) ? "var(--ink)" : "var(--white)",
+              border: `1px solid ${isBookmarked(id) ? "var(--ink)" : "var(--line2)"}`,
+            }}
+            aria-label={isBookmarked(id) ? "북마크 해제" : "북마크 저장"}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M3 2.5C3 2.22386 3.22386 2 3.5 2H12.5C12.7761 2 13 2.22386 13 2.5V14L8 11L3 14V2.5Z"
+                fill={isBookmarked(id) ? "white" : "none"}
+                stroke={isBookmarked(id) ? "white" : "var(--ink3)"}
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
       </header>
 
       {!loading && c && (
