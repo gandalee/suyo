@@ -9,6 +9,101 @@ import {
   type District,
 } from "@/src/data/districts";
 
+const MILESTONES = [
+  { date: "2026-05-14", label: "후보자 등록", sub: "5.14~15" },
+  { date: "2026-05-17", label: "선거인명부 열람", sub: "5.17~19" },
+  { date: "2026-05-21", label: "선거운동 시작", sub: "5.21~6.2" },
+  { date: "2026-05-29", label: "사전투표", sub: "5.29~30 · 오전6시~오후6시" },
+  { date: "2026-06-03", label: "선거일", sub: "오전6시~오후6시", highlight: true },
+];
+
+function ElectionTimeline() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 가장 가까운 다음 이벤트 인덱스
+  const nextIdx = MILESTONES.findIndex((m) => new Date(m.date) >= today);
+
+  return (
+    <div>
+      <p className="text-sm font-semibold mb-3" style={{ color: "var(--ink2)" }}>
+        선거 일정
+      </p>
+      <div
+        className="flex gap-3 overflow-x-auto pb-1"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {MILESTONES.map((m, i) => {
+          const mDate = new Date(m.date);
+          mDate.setHours(0, 0, 0, 0);
+          const diffMs = mDate.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffMs / 86400000);
+          const isPast = diffDays < 0;
+          const isNext = i === nextIdx;
+          const isHighlight = m.highlight;
+
+          return (
+            <div
+              key={m.date}
+              className="flex-shrink-0 flex flex-col gap-1.5 px-4 py-3 rounded-2xl"
+              style={{
+                minWidth: 130,
+                background: isHighlight && !isPast
+                  ? "var(--ink)"
+                  : isNext
+                  ? "var(--green)"
+                  : isPast
+                  ? "var(--line2)"
+                  : "var(--white)",
+                border: `1px solid ${isHighlight && !isPast ? "var(--ink)" : isNext ? "var(--green-dark)" : "var(--line)"}`,
+                opacity: isPast ? 0.5 : 1,
+              }}
+            >
+              {/* D-day 배지 */}
+              <span
+                className="text-xs font-bold"
+                style={{
+                  color: isHighlight && !isPast
+                    ? "rgba(255,255,255,0.7)"
+                    : isNext
+                    ? "var(--ink2)"
+                    : "var(--ink3)",
+                }}
+              >
+                {isPast ? "완료" : diffDays === 0 ? "오늘" : `D-${diffDays}`}
+              </span>
+
+              {/* 이벤트명 */}
+              <p
+                className="text-sm font-bold leading-snug"
+                style={{
+                  color: isHighlight && !isPast
+                    ? "var(--white)"
+                    : "var(--ink)",
+                }}
+              >
+                {m.label}
+              </p>
+
+              {/* 날짜 */}
+              <p
+                className="text-[11px] leading-snug"
+                style={{
+                  color: isHighlight && !isPast
+                    ? "rgba(255,255,255,0.6)"
+                    : "var(--ink3)",
+                }}
+              >
+                {m.sub}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -81,6 +176,9 @@ export default function Home() {
             지역을 선택하면 후보자 정보를 볼 수 있어요
           </p>
         </div>
+
+        {/* 선거 일정 타임라인 */}
+        <ElectionTimeline />
 
         {/* 공약 성향 매칭 배너 — 검색보다 위로 */}
         <button
