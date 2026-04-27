@@ -531,6 +531,29 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
                 </div>
               </div>
             </div>
+
+            {/* 공유 버튼 */}
+            <button
+              onClick={() => {
+                const url = window.location.href;
+                const text = `${String(c.name)} 후보 정보 · 수요일`;
+                if (navigator.share) {
+                  navigator.share({ title: text, url });
+                } else {
+                  navigator.clipboard.writeText(url).then(() => alert("링크가 복사됐어요!"));
+                }
+              }}
+              className="mt-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-medium self-start"
+              style={{ background: "var(--bg-page)", color: "var(--ink2)", border: "1px solid var(--line)" }}
+            >
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                <circle cx="12" cy="2.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                <circle cx="12" cy="12.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                <circle cx="3" cy="7.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                <path d="M10.5 3.5L4.5 6.5M4.5 8.5L10.5 11.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
+              공유하기
+            </button>
           </section>
 
           {/* 탭 */}
