@@ -381,6 +381,26 @@ export default function Home() {
         </div>
       </div>
 
+      {/* 투표 안내 배너 */}
+      <button
+        onClick={() => router.push("/polling")}
+        className="w-full px-5 py-4 flex items-center gap-4 text-left"
+        style={{
+          background: "var(--white)",
+          borderRadius: 16,
+          border: "1px solid var(--line)",
+        }}
+      >
+        <span className="text-xl">🗳️</span>
+        <div className="flex-1">
+          <p className="text-sm font-bold" style={{ color: "var(--ink)" }}>투표 안내</p>
+          <p className="text-xs mt-0.5" style={{ color: "var(--ink2)" }}>투표일, 사전투표, 준비물 확인</p>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 3L11 8L6 13" stroke="var(--ink2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
       {/* 하단 */}
       <footer className="mt-auto pb-8 text-center">
         <p className="text-xs" style={{ color: "var(--ink3)" }}>
