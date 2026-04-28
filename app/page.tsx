@@ -178,10 +178,10 @@ export default function Home() {
   const dday = Math.ceil((new Date("2026-06-03").getTime() - Date.now()) / 86400000);
 
   return (
-    <main className="flex flex-col min-h-screen" style={{ background: "var(--bg-page)" }}>
+    <main className="flex flex-col min-h-screen" style={{ background: "var(--white)" }}>
 
       {/* 상단 로고 영역 */}
-      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--line2)" }}>
+      <div style={{ borderBottom: "1px solid var(--line2)" }}>
         <div className="flex items-baseline justify-between px-5 pt-12 pb-3">
           <span
             className="font-black"
@@ -351,6 +351,20 @@ export default function Home() {
         {/* 선거 일정 타임라인 */}
         <ElectionTimeline />
 
+        {/* 투표 안내 */}
+        <button
+          onClick={() => router.push("/polling")}
+          className="w-full px-5 py-4 flex items-center gap-4 text-left"
+          style={{ border: "1px solid var(--line2)" }}
+        >
+          <span style={{ fontSize: 16 }}>🗳️</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold" style={{ color: "var(--ink)" }}>투표 안내</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--ink3)" }}>투표일, 사전투표, 준비물 확인</p>
+          </div>
+          <span style={{ color: "var(--ink3)", fontSize: 14 }}>›</span>
+        </button>
+
         {/* 공약 성향 매칭 배너 */}
         <button
           onClick={() => router.push("/match")}
@@ -363,20 +377,6 @@ export default function Home() {
             <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>14가지 이슈로 나와 가까운 후보 찾기</p>
           </div>
           <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>›</span>
-        </button>
-
-        {/* 투표 안내 */}
-        <button
-          onClick={() => router.push("/polling")}
-          className="w-full px-5 py-4 flex items-center gap-4 text-left"
-          style={{ background: "var(--white)", border: "1px solid var(--line2)" }}
-        >
-          <span style={{ fontSize: 16 }}>🗳️</span>
-          <div className="flex-1">
-            <p className="text-sm font-semibold" style={{ color: "var(--ink)" }}>투표 안내</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--ink3)" }}>투표일, 사전투표, 준비물 확인</p>
-          </div>
-          <span style={{ color: "var(--ink3)", fontSize: 14 }}>›</span>
         </button>
 
       </div>
