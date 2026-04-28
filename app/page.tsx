@@ -46,17 +46,18 @@ function ElectionTimeline() {
           return (
             <div
               key={m.date}
-              className="flex-shrink-0 flex flex-col gap-1.5 px-4 py-3 rounded-2xl"
+              className="flex-shrink-0 flex flex-col gap-1.5 px-4 py-3"
               style={{
                 minWidth: 130,
+                borderRadius: "var(--radius)",
                 background: isHighlight && !isPast
                   ? "var(--ink)"
                   : isNext
-                  ? "var(--green)"
+                  ? "var(--accent-bg)"
                   : isPast
                   ? "var(--line2)"
                   : "var(--white)",
-                border: `1px solid ${isHighlight && !isPast ? "var(--ink)" : isNext ? "var(--green-dark)" : "var(--line)"}`,
+                border: `1px solid ${isHighlight && !isPast ? "var(--ink)" : isNext ? "var(--accent-border)" : "var(--line)"}`,
                 opacity: isPast ? 0.5 : 1,
               }}
             >
@@ -67,7 +68,7 @@ function ElectionTimeline() {
                   color: isHighlight && !isPast
                     ? "rgba(255,255,255,0.7)"
                     : isNext
-                    ? "var(--ink2)"
+                    ? "var(--accent)"
                     : "var(--ink3)",
                 }}
               >
@@ -126,13 +127,13 @@ function BookmarksSection() {
         {bookmarks.map((b) => (
           <div
             key={b.huboid}
-            className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-            style={{ background: "var(--white)", border: "1px solid var(--line)" }}
+            className="flex items-center gap-3 px-4 py-3"
+            style={{ background: "var(--white)", border: "1px solid var(--line)", borderRadius: "var(--radius)" }}
           >
             {/* 기호 아바타 */}
             <div
               className="flex-shrink-0 flex flex-col items-center justify-center"
-              style={{ width: 40, height: 40, borderRadius: 12, background: "var(--green)" }}
+              style={{ width: 40, height: 40, borderRadius: "var(--radius-sm)", background: "var(--accent-bg)" }}
             >
               <span className="text-[9px]" style={{ color: "var(--ink3)" }}>기호</span>
               <span className="text-sm font-black leading-tight" style={{ color: "var(--ink)" }}>
@@ -226,14 +227,14 @@ export default function Home() {
         {/* 타이틀 */}
         <div className="flex flex-col gap-2">
           <h1
-            className="text-4xl font-black leading-tight tracking-tight"
-            style={{ color: "var(--ink)" }}
+            className="text-4xl font-black leading-tight"
+            style={{ color: "var(--ink)", fontFamily: "var(--font-serif)", letterSpacing: "-0.02em" }}
           >
             내 투표용지
             <br />
             확인하기
           </h1>
-          <p className="text-base mt-1" style={{ color: "var(--ink3)" }}>
+          <p className="text-sm mt-1" style={{ color: "var(--ink3)" }}>
             지역을 선택하면 후보자 정보를 볼 수 있어요
           </p>
         </div>
@@ -244,23 +245,23 @@ export default function Home() {
         {/* 선거 일정 타임라인 */}
         <ElectionTimeline />
 
-        {/* 공약 성향 매칭 배너 — 검색보다 위로 */}
+        {/* 공약 성향 매칭 배너 */}
         <button
           onClick={() => router.push("/match")}
           className="w-full px-5 py-4 flex items-center gap-4 text-left"
           style={{
-            background: "var(--green)",
-            borderRadius: 16,
-            border: "1px solid var(--green-dark)",
+            background: "var(--ink)",
+            borderRadius: "var(--radius)",
+            border: "1px solid var(--ink)",
           }}
         >
           <span className="text-xl">◎</span>
           <div className="flex-1">
-            <p className="text-sm font-bold" style={{ color: "var(--ink)" }}>공약 성향 매칭 해보기</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--ink2)" }}>14가지 이슈로 나와 가까운 후보 찾기</p>
+            <p className="text-sm font-bold" style={{ color: "var(--white)" }}>공약 성향 매칭 해보기</p>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>14가지 이슈로 나와 가까운 후보 찾기</p>
           </div>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M6 3L11 8L6 13" stroke="var(--ink2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M6 3L11 8L6 13" stroke="rgba(255,255,255,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
 
@@ -281,7 +282,7 @@ export default function Home() {
               style={{
                 background: "var(--white)",
                 border: "1.5px solid var(--line2)",
-                borderRadius: 14,
+                borderRadius: "var(--radius)",
                 color: "var(--ink)",
               }}
             />
@@ -291,7 +292,7 @@ export default function Home() {
                 style={{
                   background: "var(--white)",
                   border: "1px solid var(--line2)",
-                  borderRadius: 14,
+                  borderRadius: "var(--radius)",
                   boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                 }}
               >
@@ -387,7 +388,7 @@ export default function Home() {
         className="w-full px-5 py-4 flex items-center gap-4 text-left"
         style={{
           background: "var(--white)",
-          borderRadius: 16,
+          borderRadius: "var(--radius)",
           border: "1px solid var(--line)",
         }}
       >
