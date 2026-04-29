@@ -345,6 +345,29 @@ export default function Home() {
           </button>
         </div>
 
+        {/* 공약 성향 매칭 배너 — 훅 */}
+        <button
+          onClick={() => router.push("/match")}
+          className="w-full flex flex-col text-left"
+          style={{ background: "var(--ink)", border: "1px solid var(--ink)", padding: "20px 20px 18px" }}
+        >
+          <p className="text-[10px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+            나와 맞는 후보 찾기
+          </p>
+          <p className="font-black leading-tight" style={{ fontSize: 22, letterSpacing: "-0.03em", color: "var(--white)", fontFamily: "var(--font-serif)" }}>
+            공약 성향 매칭
+          </p>
+          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>
+            14가지 이슈로 나와 가장 가까운 후보를 찾아드려요
+          </p>
+          <div className="flex items-center gap-2 mt-4">
+            <span className="text-xs font-bold px-3 py-1.5" style={{ background: "var(--white)", color: "var(--ink)", borderRadius: 99 }}>
+              매칭 시작하기 →
+            </span>
+            <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>약 3분</span>
+          </div>
+        </button>
+
         {/* 저장한 후보 */}
         <BookmarksSection />
 
@@ -363,20 +386,6 @@ export default function Home() {
             <p className="text-xs mt-0.5" style={{ color: "var(--ink3)" }}>투표일, 사전투표, 준비물 확인</p>
           </div>
           <span style={{ color: "var(--ink3)", fontSize: 14 }}>›</span>
-        </button>
-
-        {/* 공약 성향 매칭 배너 */}
-        <button
-          onClick={() => router.push("/match")}
-          className="w-full px-5 py-4 flex items-center gap-4 text-left"
-          style={{ background: "var(--ink)", border: "1px solid var(--ink)" }}
-        >
-          <span style={{ fontSize: 18 }}>◎</span>
-          <div className="flex-1">
-            <p className="text-sm font-bold" style={{ color: "var(--white)" }}>공약 성향 매칭 해보기</p>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>14가지 이슈로 나와 가까운 후보 찾기</p>
-          </div>
-          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>›</span>
         </button>
 
       </div>
