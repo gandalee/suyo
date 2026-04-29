@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, use } from "react";
 import { useBookmarks } from "@/src/hooks/useBookmarks";
+import CandidateAvatar from "@/components/CandidateAvatar";
 
 const TABS = [
   { key: "media", label: "뉴스 비교" },
@@ -494,16 +495,18 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
           <section className="px-5 py-6" style={{ background: "var(--white)", borderBottom: "1px solid var(--line)" }}>
             <div className="flex items-center gap-4">
               {/* 아바타 */}
-              <div
-                className="flex-shrink-0 flex flex-col items-center justify-center"
-                style={{ width: 72, height: 72, borderRadius: 20, background: "var(--green)" }}
-              >
-                <span className="text-3xl font-black leading-none" style={{ color: "var(--ink)" }}>
-                  {String(c.name ?? "")[0]}
-                </span>
-                <span className="text-[10px] mt-0.5" style={{ color: "var(--ink2)" }}>
-                  기호 {String(c.symbol ?? "")}
-                </span>
+              <div className="flex-shrink-0 relative">
+                <CandidateAvatar name={String(c.name ?? "")} photoUrl={c.photo_url ? String(c.photo_url) : null} size={72} />
+                <div style={{
+                  position: "absolute", bottom: -2, right: -2,
+                  width: 22, height: 22, borderRadius: "50%",
+                  background: "var(--ink)", color: "var(--white)",
+                  fontSize: 10, fontWeight: 900,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1.5px solid var(--white)",
+                }}>
+                  {String(c.symbol ?? "")}
+                </div>
               </div>
               <div className="flex flex-col gap-1.5 flex-1">
                 <span className="text-xl font-bold" style={{ color: "var(--ink)" }}>{String(c.name ?? "")}</span>

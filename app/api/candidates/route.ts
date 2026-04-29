@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 const NEC_URL =
   "https://apis.data.go.kr/9760000/PofelcddInfoInqireService/getPofelcddRegistSttusInfoInqire";
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const sgTypecode = searchParams.get("sgTypecode") ?? "3";
-  const sdName = searchParams.get("sdName") ?? "";   // 시도명 e.g. 서울특별시
-  const sggName = searchParams.get("sggName") ?? ""; // 시군구명 e.g. 종로구
+  const sdName = searchParams.get("sdName") ?? "";
+  const sggName = searchParams.get("sggName") ?? "";
 
   const API_KEY = process.env.NEC_API_KEY!;
 
-  // 2026 먼저 시도, 없으면 2022 fallback
   for (const sgId of ["20260603", "20220601"]) {
     const params = new URLSearchParams({
       serviceKey: API_KEY,
@@ -31,7 +36,6 @@ export async function GET(req: NextRequest) {
 
     if (total === 0) continue;
 
-    // XML → JSON 파싱
     const items: Record<string, string>[] = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     let itemMatch;
@@ -46,7 +50,26 @@ export async function GET(req: NextRequest) {
       items.push(obj);
     }
 
-    return NextResponse.json({ sgId, total, items });
+    // Supabase에서 photo_url 조회
+    const huboids = items.map((i) => i.huboid).filter(Boolean);
+    let photoMap: Record<string, string | null> = {};
+    if (huboids.length > 0) {
+      const { data: photos } = await supabase
+        .from("candidates")
+        .select("external_id, photo_url")
+        .in("external_id", huboids);
+      if (photos) {
+        photoMap = Object.fromEntries(photos.map((p) => [p.external_id, p.photo_url]));
+      }
+    }
+
+    // photo_url 병합
+    const itemsWithPhoto = items.map((item) => ({
+      ...item,
+      photo_url: photoMap[item.huboid] ?? null,
+    }));
+
+    return NextResponse.json({ sgId, total, items: itemsWithPhoto });
   }
 
   return NextResponse.json({ sgId: null, total: 0, items: [] });

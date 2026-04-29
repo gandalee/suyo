@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useEffect, useState, useCallback } from "react";
+import CandidateAvatar from "@/components/CandidateAvatar";
 
 interface Candidate {
   huboid: string;
@@ -16,6 +17,7 @@ interface Candidate {
   career2: string;
   sggName: string;
   status: string;
+  photo_url?: string | null;
 }
 
 // ── 후보 카드 ─────────────────────────────────────
@@ -40,20 +42,30 @@ function CandidateCard({
         borderRadius: 20,
       }}
     >
-      {/* 아바타 — 기호 번호 */}
-      <div
-        className="flex flex-col items-center justify-center flex-shrink-0"
-        style={{
-          width: 52,
-          height: 52,
-          borderRadius: 16,
-          background: "var(--bg-page)",
-        }}
-      >
-        <span className="text-[10px]" style={{ color: "var(--ink3)" }}>기호</span>
-        <span className="text-xl font-black leading-tight" style={{ color: "var(--ink)" }}>
+      {/* 아바타 */}
+      <div className="flex-shrink-0 relative">
+        <CandidateAvatar name={c.name} photoUrl={c.photo_url} size={52} />
+        {/* 기호 배지 */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: -2,
+            right: -2,
+            width: 20,
+            height: 20,
+            borderRadius: "50%",
+            background: "var(--ink)",
+            color: "var(--white)",
+            fontSize: 10,
+            fontWeight: 900,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1.5px solid var(--white)",
+          }}
+        >
           {c.giho}
-        </span>
+        </div>
       </div>
 
       {/* 본문 */}
