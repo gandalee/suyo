@@ -93,7 +93,7 @@ function ElectionCard({
       {/* 후보 칩 가로 스크롤 */}
       {chipLoading ? (
         <div
-          className="flex items-center gap-2 px-5 pb-4 overflow-hidden"
+          className="flex items-center gap-2 px-5 py-4 overflow-hidden"
           style={{ borderTop: "1px solid var(--line)" }}
         >
           {[...Array(3)].map((_, i) => (
@@ -106,7 +106,7 @@ function ElectionCard({
         </div>
       ) : chips.length > 0 ? (
         <div
-          className="flex items-center gap-2 px-5 pb-4 overflow-x-auto"
+          className="flex items-center gap-2 px-5 py-4 overflow-x-auto"
           style={{ borderTop: "1px solid var(--line)" }}
           onClick={(e) => e.stopPropagation()} // 칩 스크롤 시 카드 클릭 방지 안함 — 그냥 통과
         >
