@@ -4,6 +4,7 @@ import { Suspense, useMemo, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SAMPLE_ISSUES, type Stance } from "@/src/data/issues/sample";
 import CandidateAvatar from "@/components/CandidateAvatar";
+import { SIDO_LIST, SIGUNGU_BY_SIDO } from "@/src/data/districts";
 
 type UserStances = Record<number, Stance>;
 
@@ -42,6 +43,27 @@ function ResultContent() {
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // 지역구 인라인 편집
+  const [isEditingDistrict, setIsEditingDistrict] = useState(false);
+  const [editSido, setEditSido] = useState(sido);
+  const [editSigungu, setEditSigungu] = useState(sigungu);
+  const editSigunguList = editSido ? (SIGUNGU_BY_SIDO[editSido] ?? []) : [];
+
+  function applyDistrict() {
+    if (!editSido || !editSigungu) return;
+    // localStorage 저장
+    try {
+      localStorage.setItem("suyo_district", JSON.stringify({ sido: editSido, sigungu: editSigungu }));
+    } catch {}
+    // URL 업데이트 (s 파라미터 유지)
+    const next = new URLSearchParams();
+    if (raw) next.set("s", raw);
+    next.set("sido", editSido);
+    next.set("sigungu", editSigungu);
+    router.replace(`/match/result?${next.toString()}`);
+    setIsEditingDistrict(false);
+  }
 
   useEffect(() => {
     if (!sido || !sigungu) return;
@@ -89,6 +111,100 @@ function ResultContent() {
       className="flex flex-col min-h-screen pb-10"
       style={{ background: "var(--bg-page)" }}
     >
+      {/* ── 지역구 설정 바 ── */}
+      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--line)" }}>
+        {!isEditingDistrict ? (
+          <button
+            onClick={() => {
+              setEditSido(sido);
+              setEditSigungu(sigungu);
+              setIsEditingDistrict(true);
+            }}
+            className="w-full flex items-center gap-2 px-5"
+            style={{ height: 44 }}
+          >
+            {/* 핀 아이콘 */}
+            <svg width="13" height="16" viewBox="0 0 13 16" fill="none" style={{ flexShrink: 0 }}>
+              <path
+                d="M6.5 0C3.74 0 1.5 2.24 1.5 5c0 3.75 5 11 5 11s5-7.25 5-11c0-2.76-2.24-5-5-5zm0 6.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"
+                fill={sido && sigungu ? "var(--accent)" : "var(--ink3)"}
+              />
+            </svg>
+            <span
+              className="text-sm font-semibold"
+              style={{ color: sido && sigungu ? "var(--ink)" : "var(--ink3)" }}
+            >
+              {sido && sigungu ? `${sido} ${sigungu}` : "내 지역구 설정하기"}
+            </span>
+            <span className="ml-auto text-xs" style={{ color: "var(--ink3)" }}>
+              변경 ›
+            </span>
+          </button>
+        ) : (
+          <div className="px-5 py-3 flex flex-col gap-2">
+            {/* 시도 + 시군구 드롭다운 */}
+            <div className="flex gap-2">
+              <select
+                value={editSido}
+                onChange={(e) => { setEditSido(e.target.value); setEditSigungu(""); }}
+                className="flex-1 px-3 text-sm outline-none appearance-none"
+                style={{
+                  height: 40,
+                  border: editSido ? "1.5px solid var(--ink)" : "1px solid var(--line2)",
+                  background: "var(--white)",
+                  color: editSido ? "var(--ink)" : "var(--ink3)",
+                  fontWeight: editSido ? 600 : 400,
+                }}
+              >
+                <option value="">시·도 선택</option>
+                {SIDO_LIST.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <select
+                value={editSigungu}
+                onChange={(e) => setEditSigungu(e.target.value)}
+                disabled={!editSido}
+                className="flex-1 px-3 text-sm outline-none appearance-none"
+                style={{
+                  height: 40,
+                  border: editSigungu ? "1.5px solid var(--ink)" : "1px solid var(--line2)",
+                  background: editSido ? "var(--white)" : "var(--line2)",
+                  color: editSigungu ? "var(--ink)" : "var(--ink3)",
+                  fontWeight: editSigungu ? 600 : 400,
+                  opacity: editSido ? 1 : 0.5,
+                }}
+              >
+                <option value="">시·군·구 선택</option>
+                {editSigunguList.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            {/* 버튼 */}
+            <div className="flex gap-2">
+              <button
+                onClick={applyDistrict}
+                disabled={!editSido || !editSigungu}
+                className="flex-1 text-sm font-bold"
+                style={{
+                  height: 36,
+                  background: editSido && editSigungu ? "var(--ink)" : "var(--line2)",
+                  color: editSido && editSigungu ? "var(--white)" : "var(--ink3)",
+                  borderRadius: 99,
+                  opacity: editSido && editSigungu ? 1 : 0.6,
+                }}
+              >
+                적용
+              </button>
+              <button
+                onClick={() => setIsEditingDistrict(false)}
+                className="px-4 text-sm"
+                style={{ color: "var(--ink3)" }}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* 헤더 */}
       <header className="px-5 pt-12 pb-6">
         <button
@@ -117,11 +233,6 @@ function ResultContent() {
         </h1>
         <p className="text-sm mt-1" style={{ color: "var(--ink3)" }}>
           {total}개 중 {answered}개 입장 표명
-          {sido && sigungu && (
-            <span style={{ color: "var(--accent)" }}>
-              {" "}· {sido} {sigungu}
-            </span>
-          )}
         </p>
       </header>
 
