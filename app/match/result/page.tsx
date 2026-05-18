@@ -31,6 +31,32 @@ interface CandidateGroup {
   items: Candidate[];
 }
 
+type CandidateStances = Record<string, Record<number, Stance>>; // huboid → issueId → stance
+
+function calcScore(
+  userStances: Record<number, Stance>,
+  candStances: Record<number, string>
+): number | null {
+  if (!candStances || Object.keys(candStances).length === 0) return null;
+  let total = 0;
+  let points = 0;
+  SAMPLE_ISSUES.forEach((issue) => {
+    const user = userStances[issue.id];
+    const cand = candStances[issue.id] as Stance | undefined;
+    if (!user || !cand) return;
+    total += 1;
+    if (user === cand) points += 1;
+    else if (user === "neutral" || cand === "neutral") points += 0.5;
+  });
+  return total > 0 ? Math.round((points / total) * 100) : null;
+}
+
+function scoreColor(pct: number) {
+  if (pct >= 70) return { bar: "#3e6e2a", text: "#3e6e2a", bg: "#EAF5E4" };
+  if (pct >= 40) return { bar: "var(--ink2)", text: "var(--ink2)", bg: "var(--line2)" };
+  return { bar: "var(--bad-ink)", text: "var(--bad-ink)", bg: "#FEF0F0" };
+}
+
 function ResultContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -49,6 +75,7 @@ function ResultContent() {
 
   const [groups, setGroups] = useState<CandidateGroup[]>([]);
   const [loading, setLoading] = useState(false);
+  const [stancesMap, setStancesMap] = useState<CandidateStances>({});
 
   // 지역구 인라인 편집
   const [isEditingDistrict, setIsEditingDistrict] = useState(false);
@@ -97,7 +124,7 @@ function ResultContent() {
       fetch(`/api/candidates?${qsGovernor}`).then((r) => r.json()),
       fetch(`/api/candidates?${qsMayor}`).then((r) => r.json()),
     ])
-      .then(([govData, mayorData]) => {
+      .then(async ([govData, mayorData]) => {
         const governors = parseItems(govData, "governor");
         const mayors = parseItems(mayorData, "mayor");
 
@@ -105,6 +132,14 @@ function ResultContent() {
         if (governors.length > 0) result.push({ label: `${sido}지사 / 시장`, items: governors });
         if (mayors.length > 0) result.push({ label: `${sigungu} 구청장 / 시장 / 군수`, items: mayors });
         setGroups(result);
+
+        // stances 조회
+        const allHuboids = [...governors, ...mayors].map((c) => c.huboid).filter(Boolean);
+        if (allHuboids.length > 0) {
+          const sq = new URLSearchParams({ huboids: allHuboids.join(",") });
+          const sd = await fetch(`/api/stances?${sq}`).then((r) => r.json());
+          setStancesMap(sd.stances ?? {});
+        }
       })
       .catch(() => setGroups([]))
       .finally(() => setLoading(false));
@@ -305,62 +340,95 @@ function ResultContent() {
             </div>
           )}
 
-          {!loading && groups.map((group) => (
-            <div key={group.label} className="mb-6">
-              {/* 그룹 레이블 */}
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold tracking-widest uppercase"
-                  style={{ color: "var(--ink3)" }}>
-                  {group.label}
-                </p>
-                <span className="text-[10px] font-bold px-2 py-0.5"
-                  style={{ background: "var(--line2)", color: "var(--ink3)" }}>
-                  분석 예정
-                </span>
+          {!loading && groups.map((group) => {
+            // 점수 계산 후 정렬
+            const scored = group.items.map((c) => ({
+              ...c,
+              score: calcScore(userStances, stancesMap[c.huboid] ?? {}),
+            })).sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+
+            const hasAnyScore = scored.some((c) => c.score !== null);
+
+            return (
+              <div key={group.label} className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-bold tracking-widest uppercase"
+                    style={{ color: "var(--ink3)" }}>
+                    {group.label}
+                  </p>
+                  {!hasAnyScore && (
+                    <span className="text-[10px] font-bold px-2 py-0.5"
+                      style={{ background: "var(--line2)", color: "var(--ink3)" }}>
+                      분석 예정
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-col">
+                  {scored.map((c, idx) => {
+                    const colors = c.score !== null ? scoreColor(c.score) : null;
+                    return (
+                      <button
+                        key={c.huboid || idx}
+                        onClick={() => c.huboid ? router.push(`/candidates/${c.huboid}`) : undefined}
+                        className="flex items-center gap-4 px-4 py-4 text-left w-full"
+                        style={{
+                          background: c.score !== null && idx === 0 ? colors!.bg : "var(--white)",
+                          borderTop: idx === 0 ? "1px solid var(--line)" : undefined,
+                          borderBottom: "1px solid var(--line)",
+                        }}
+                      >
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                          <CandidateAvatar name={c.name} photoUrl={c.photo_url} size={44} />
+                          {c.giho && (
+                            <span style={{
+                              position: "absolute", bottom: -2, right: -2,
+                              width: 18, height: 18, borderRadius: "50%",
+                              background: "var(--ink)", color: "var(--white)",
+                              fontSize: 9, fontWeight: 700,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                            }}>
+                              {c.giho}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-base truncate" style={{ color: "var(--ink)" }}>
+                            {c.name}
+                          </p>
+                          <p className="text-sm truncate" style={{ color: "var(--ink3)" }}>
+                            {c.party}
+                          </p>
+                          {/* 점수 있을 때 프로그레스 바 */}
+                          {c.score !== null && (
+                            <div className="mt-2 h-1 w-full overflow-hidden" style={{ background: "var(--line2)" }}>
+                              <div
+                                className="h-full transition-all duration-500"
+                                style={{ width: `${c.score}%`, background: colors!.bar }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        {/* 점수 표시 */}
+                        {c.score !== null ? (
+                          <div className="flex-shrink-0 text-right">
+                            <span className="text-xl font-black" style={{ color: colors!.text }}>
+                              {c.score}
+                            </span>
+                            <span className="text-xs font-semibold" style={{ color: colors!.text }}>%</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] flex-shrink-0 px-2 py-1"
+                            style={{ background: "var(--line2)", color: "var(--ink3)" }}>
+                            분석 예정
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              {/* 후보 카드 목록 */}
-              <div className="flex flex-col">
-                {group.items.map((c, idx) => (
-                  <button
-                    key={c.huboid || idx}
-                    onClick={() => c.huboid ? router.push(`/candidates/${c.huboid}`) : undefined}
-                    className="flex items-center gap-4 px-4 py-4 text-left w-full"
-                    style={{
-                      background: "var(--white)",
-                      borderTop: idx === 0 ? "1px solid var(--line)" : undefined,
-                      borderBottom: "1px solid var(--line)",
-                    }}
-                  >
-                    <div style={{ position: "relative", flexShrink: 0 }}>
-                      <CandidateAvatar name={c.name} photoUrl={c.photo_url} size={44} />
-                      {c.giho && (
-                        <span style={{
-                          position: "absolute", bottom: -2, right: -2,
-                          width: 18, height: 18, borderRadius: "50%",
-                          background: "var(--ink)", color: "var(--white)",
-                          fontSize: 9, fontWeight: 700,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                        }}>
-                          {c.giho}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-base truncate" style={{ color: "var(--ink)" }}>
-                        {c.name}
-                      </p>
-                      <p className="text-sm truncate" style={{ color: "var(--ink3)" }}>
-                        {c.party}
-                      </p>
-                    </div>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-                      <path d="M5 2.5L9.5 7L5 11.5" stroke="var(--ink3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </section>
       )}
 
