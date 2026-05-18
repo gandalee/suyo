@@ -57,7 +57,7 @@ function PledgeReviewSection({ candidateId }: { candidateId: string }) {
         <div className="flex items-center gap-2 px-4 py-4 rounded-2xl"
           style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
           <div className="w-4 h-4 rounded-full border-2 animate-spin flex-shrink-0"
-            style={{ borderColor: "var(--green-dark)", borderTopColor: "transparent" }} />
+            style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
           <p className="text-sm" style={{ color: "var(--ink3)" }}>뉴스 불러오는 중...</p>
         </div>
       ) : articles.length === 0 ? (
@@ -299,7 +299,7 @@ function MediaTab({ candidateId }: { candidateId: string }) {
     return (
       <div className="flex justify-center py-16">
         <div className="w-8 h-8 rounded-full border-2 animate-spin"
-          style={{ borderColor: "var(--green-dark)", borderTopColor: "transparent" }} />
+          style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
       </div>
     );
   }
@@ -527,7 +527,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
                   )}
                   {c.job && (
                     <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{ background: "var(--green)", color: "var(--ink)" }}>
+                      style={{ background: "var(--accent-bg)", color: "var(--ink)" }}>
                       {String(c.job)}
                     </span>
                   )}

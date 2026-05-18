@@ -37,8 +37,8 @@ function CandidateCard({
       className="flex items-center gap-4 px-5 py-5 cursor-pointer active:opacity-70 transition-opacity"
       onClick={() => router.push(`/candidates/${c.huboid}`)}
       style={{
-        background: selected ? "var(--green)" : "var(--white)",
-        border: `1px solid ${selected ? "var(--green-dark)" : "var(--line)"}`,
+        background: selected ? "var(--accent-bg)" : "var(--white)",
+        border: `1px solid ${selected ? "var(--accent)" : "var(--line)"}`,
         borderRadius: 20,
       }}
     >
@@ -107,7 +107,7 @@ function CandidateCard({
           {c.job && (
             <span
               className="text-xs px-2 py-0.5 rounded-full font-medium truncate max-w-[140px]"
-              style={{ background: selected ? "rgba(255,255,255,0.6)" : "var(--green)", color: "var(--ink)" }}
+              style={{ background: selected ? "rgba(255,255,255,0.6)" : "var(--accent-bg)", color: "var(--ink)" }}
             >
               {c.job}
             </span>
@@ -199,7 +199,7 @@ function CompareSheet({ pair, onClose }: { pair: [Candidate, Candidate]; onClose
             >
               <div
                 className="flex flex-col items-center justify-center w-10 h-10 rounded-xl mb-0.5"
-                style={{ background: "var(--green)" }}
+                style={{ background: "var(--accent-bg)" }}
               >
                 <span className="text-[10px]" style={{ color: "var(--ink3)" }}>기호</span>
                 <span className="text-sm font-black leading-tight" style={{ color: "var(--ink)" }}>{c.giho}</span>
@@ -361,7 +361,7 @@ function CandidatesContent() {
           <div className="flex justify-center py-20">
             <div
               className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-              style={{ borderColor: "var(--green-dark)", borderTopColor: "transparent" }}
+              style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
             />
           </div>
         ) : candidates.length === 0 ? (
@@ -426,7 +426,7 @@ function CandidatesContent() {
             disabled={compareList.length < 2}
             className="flex-shrink-0 px-5 h-11 rounded-2xl text-sm font-semibold flex items-center gap-1.5 transition-opacity"
             style={{
-              background: compareList.length === 2 ? "var(--green)" : "rgba(255,255,255,0.15)",
+              background: compareList.length === 2 ? "var(--accent-bg)" : "rgba(255,255,255,0.15)",
               color: compareList.length === 2 ? "var(--ink)" : "rgba(255,255,255,0.4)",
               opacity: compareList.length === 2 ? 1 : 0.7,
             }}

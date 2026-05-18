@@ -23,6 +23,12 @@ interface Candidate {
   sdName?: string;
   sggName?: string;
   jdName?: string;
+  type: "governor" | "mayor"; // 시도지사 | 구시군의장
+}
+
+interface CandidateGroup {
+  label: string;
+  items: Candidate[];
 }
 
 function ResultContent() {
@@ -41,7 +47,7 @@ function ResultContent() {
     }
   }, [raw]);
 
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [groups, setGroups] = useState<CandidateGroup[]>([]);
   const [loading, setLoading] = useState(false);
 
   // 지역구 인라인 편집
@@ -68,29 +74,39 @@ function ResultContent() {
   useEffect(() => {
     if (!sido || !sigungu) return;
     setLoading(true);
-    // 시도지사(sgTypecode=2), 교육감(sgTypecode=7), 구청장(sgTypecode=4) 등 복수 타입 조회
-    // 여기서는 구·시·군의 장(4)을 기본으로 조회
-    const qs = new URLSearchParams({
-      sdName: sido,
-      sggName: sigungu,
-      sgTypecode: "4",
-    });
-    fetch(`/api/candidates?${qs}`)
-      .then((r) => r.json())
-      .then((data) => {
-        const items: Candidate[] = (data.items ?? []).map((item: Record<string, string | null>) => ({
-          huboid: String(item.huboid ?? ""),
-          giho: String(item.giho ?? ""),
-          name: String(item.name ?? ""),
-          party: String(item.jdName ?? ""),  // NEC API: jdName = 소속정당명
-          photo_url: item.photo_url ? String(item.photo_url) : null,
-          sdName: String(item.sdName ?? ""),
-          sggName: String(item.sggName ?? ""),
-          jdName: String(item.jdName ?? ""),
-        }));
-        setCandidates(items);
+
+    function parseItems(data: { items?: Record<string, string | null>[] }, type: Candidate["type"]): Candidate[] {
+      return (data.items ?? []).map((item) => ({
+        huboid: String(item.huboid ?? ""),
+        giho: String(item.giho ?? ""),
+        name: String(item.name ?? ""),
+        party: String(item.jdName ?? ""),
+        photo_url: item.photo_url ? String(item.photo_url) : null,
+        sdName: String(item.sdName ?? ""),
+        sggName: String(item.sggName ?? ""),
+        jdName: String(item.jdName ?? ""),
+        type,
+      }));
+    }
+
+    // 시도지사(3) + 구·시·군의 장(4) 병렬 조회
+    const qsGovernor = new URLSearchParams({ sdName: sido, sgTypecode: "3" });
+    const qsMayor = new URLSearchParams({ sdName: sido, sggName: sigungu, sgTypecode: "4" });
+
+    Promise.all([
+      fetch(`/api/candidates?${qsGovernor}`).then((r) => r.json()),
+      fetch(`/api/candidates?${qsMayor}`).then((r) => r.json()),
+    ])
+      .then(([govData, mayorData]) => {
+        const governors = parseItems(govData, "governor");
+        const mayors = parseItems(mayorData, "mayor");
+
+        const result: CandidateGroup[] = [];
+        if (governors.length > 0) result.push({ label: `${sido}지사 / 시장`, items: governors });
+        if (mayors.length > 0) result.push({ label: `${sigungu} 구청장 / 시장 / 군수`, items: mayors });
+        setGroups(result);
       })
-      .catch(() => setCandidates([]))
+      .catch(() => setGroups([]))
       .finally(() => setLoading(false));
   }, [sido, sigungu]);
 
@@ -256,152 +272,95 @@ function ResultContent() {
       {/* ── 내 지역구 후보 섹션 ── */}
       {(sido && sigungu) && (
         <section className="px-5 mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2
-              className="text-base font-bold"
-              style={{ color: "var(--ink)", fontFamily: "var(--font-serif)" }}
-            >
-              {sigungu} 후보
-            </h2>
-            <span
-              className="text-[10px] font-bold px-2 py-0.5"
-              style={{
-                background: "var(--accent-bg)",
-                color: "var(--accent)",
-                border: "1px solid var(--accent-border)",
-              }}
-            >
-              분석 준비중
-            </span>
-          </div>
-
-          {/* 업데이트 예정 안내 */}
+          {/* 공약 분석 예정 안내 */}
           <div
-            className="px-4 py-3 mb-4"
-            style={{
-              background: "var(--line2)",
-              border: "1px solid var(--line)",
-            }}
+            className="px-4 py-3 mb-5"
+            style={{ background: "var(--line2)", border: "1px solid var(--line)" }}
           >
             <p className="text-xs leading-relaxed" style={{ color: "var(--ink2)" }}>
-              🗓️ <b>5월 15일 후보 등록 완료 후</b> 각 후보의 공약 입장이 분석돼
-              내 성향과 얼마나 일치하는지 확인할 수 있어요.
+              🗓️ <b>5월 21일 선거운동 시작 후</b> 각 후보의 공약이 분석돼
+              내 성향과의 일치율을 확인할 수 있어요.
             </p>
           </div>
 
           {loading && (
             <div className="flex items-center justify-center py-10">
-              <div
-                className="w-6 h-6 rounded-full border-2 animate-spin"
-                style={{
-                  borderColor: "var(--line2)",
-                  borderTopColor: "var(--accent)",
-                }}
-              />
+              <div className="w-6 h-6 rounded-full border-2 animate-spin"
+                style={{ borderColor: "var(--line2)", borderTopColor: "var(--accent)" }} />
             </div>
           )}
 
-          {!loading && candidates.length === 0 && (
-            <div
-              className="px-4 py-6 text-center"
-              style={{ border: "1px solid var(--line2)" }}
-            >
+          {!loading && groups.length === 0 && (
+            <div className="px-4 py-6 text-center" style={{ border: "1px solid var(--line2)" }}>
               <p className="text-sm" style={{ color: "var(--ink3)" }}>
-                후보 등록 전이에요.
-                <br />
-                5월 15일 이후 확인해 주세요.
+                후보 정보를 불러올 수 없어요.
               </p>
               <button
-                onClick={() =>
-                  router.push(
-                    `/candidates?sido=${encodeURIComponent(sido)}&sigungu=${encodeURIComponent(sigungu)}`
-                  )
-                }
+                onClick={() => router.push(`/candidates?sido=${encodeURIComponent(sido)}&sigungu=${encodeURIComponent(sigungu)}`)}
                 className="mt-3 text-xs font-semibold px-4 py-2"
-                style={{
-                  background: "var(--ink)",
-                  color: "var(--white)",
-                  borderRadius: 99,
-                }}
+                style={{ background: "var(--ink)", color: "var(--white)", borderRadius: 99 }}
               >
                 후보 목록 보기
               </button>
             </div>
           )}
 
-          {!loading && candidates.length > 0 && (
-            <div className="flex flex-col">
-              {candidates.map((c, idx) => (
-                <button
-                  key={c.huboid || idx}
-                  onClick={() =>
-                    c.huboid
-                      ? router.push(`/candidates/${c.huboid}`)
-                      : undefined
-                  }
-                  className="flex items-center gap-4 px-4 py-4 text-left w-full"
-                  style={{
-                    background: "var(--white)",
-                    borderTop: idx === 0 ? "1px solid var(--line)" : undefined,
-                    borderBottom: "1px solid var(--line)",
-                  }}
-                >
-                  {/* 아바타 */}
-                  <div style={{ position: "relative", flexShrink: 0 }}>
-                    <CandidateAvatar
-                      name={c.name}
-                      photoUrl={c.photo_url}
-                      size={44}
-                    />
-                    {c.giho && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          bottom: -2,
-                          right: -2,
-                          width: 18,
-                          height: 18,
-                          borderRadius: "50%",
-                          background: "var(--ink)",
-                          color: "var(--white)",
-                          fontSize: 9,
-                          fontWeight: 700,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {c.giho}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="font-bold text-base truncate"
-                      style={{ color: "var(--ink)" }}
-                    >
-                      {c.name}
-                    </p>
-                    <p className="text-sm truncate" style={{ color: "var(--ink3)" }}>
-                      {c.party}
-                    </p>
-                  </div>
-
-                  {/* 분석 준비중 */}
-                  <span
-                    className="text-[10px] font-bold flex-shrink-0 px-2 py-1"
+          {!loading && groups.map((group) => (
+            <div key={group.label} className="mb-6">
+              {/* 그룹 레이블 */}
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold tracking-widest uppercase"
+                  style={{ color: "var(--ink3)" }}>
+                  {group.label}
+                </p>
+                <span className="text-[10px] font-bold px-2 py-0.5"
+                  style={{ background: "var(--line2)", color: "var(--ink3)" }}>
+                  분석 예정
+                </span>
+              </div>
+              {/* 후보 카드 목록 */}
+              <div className="flex flex-col">
+                {group.items.map((c, idx) => (
+                  <button
+                    key={c.huboid || idx}
+                    onClick={() => c.huboid ? router.push(`/candidates/${c.huboid}`) : undefined}
+                    className="flex items-center gap-4 px-4 py-4 text-left w-full"
                     style={{
-                      background: "var(--line2)",
-                      color: "var(--ink3)",
+                      background: "var(--white)",
+                      borderTop: idx === 0 ? "1px solid var(--line)" : undefined,
+                      borderBottom: "1px solid var(--line)",
                     }}
                   >
-                    분석 예정
-                  </span>
-                </button>
-              ))}
+                    <div style={{ position: "relative", flexShrink: 0 }}>
+                      <CandidateAvatar name={c.name} photoUrl={c.photo_url} size={44} />
+                      {c.giho && (
+                        <span style={{
+                          position: "absolute", bottom: -2, right: -2,
+                          width: 18, height: 18, borderRadius: "50%",
+                          background: "var(--ink)", color: "var(--white)",
+                          fontSize: 9, fontWeight: 700,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          {c.giho}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-base truncate" style={{ color: "var(--ink)" }}>
+                        {c.name}
+                      </p>
+                      <p className="text-sm truncate" style={{ color: "var(--ink3)" }}>
+                        {c.party}
+                      </p>
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                      <path d="M5 2.5L9.5 7L5 11.5" stroke="var(--ink3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
+          ))}
         </section>
       )}
 
