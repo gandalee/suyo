@@ -21,6 +21,72 @@ interface CandidateData {
   news: Array<{ id: number; source: string; lean: string; title: string; url: string; published_at: string }>;
 }
 
+// ── 공유 버튼 컴포넌트 ─────────────────────────────────
+function ShareButton({ id, name }: { id: string; name: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    const url = `https://suyo.kr/compare/${id}`;
+    const title = `${name} 후보 언론 비교 | suyo.kr`;
+    if (navigator.share) {
+      navigator.share({ title, url });
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  };
+
+  return (
+    <>
+      <button
+        onClick={handleShare}
+        className="flex items-center justify-center w-9 h-9 rounded-full flex-shrink-0"
+        style={{ background: "var(--white)", border: "1px solid var(--line2)" }}
+        aria-label="공유하기"
+      >
+        {copied ? (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M3 8L6.5 11.5L13 5"
+              stroke="var(--accent)"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M8 2V10M8 2L5 5M8 2L11 5"
+              stroke="var(--ink)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M3 11V13H13V11"
+              stroke="var(--ink)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </button>
+      {copied && (
+        <div
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-2xl text-sm font-medium shadow-lg"
+          style={{ background: "var(--ink)", color: "var(--white)", zIndex: 50 }}
+        >
+          링크가 복사됐어요!
+        </div>
+      )}
+    </>
+  );
+}
+
 // ── 탭별 컴포넌트 ─────────────────────────────────────
 
 interface PledgeReviewData {
@@ -192,24 +258,37 @@ function AssetsTab({ disclosure }: { disclosure: CandidateData["disclosure"] }) 
   );
 }
 
-function CriminalTab({ disclosure }: { disclosure: CandidateData["disclosure"] }) {
+function CriminalTab({ disclosure, huboid }: { disclosure: CandidateData["disclosure"]; huboid: string }) {
+  const necUrl = `https://info.nec.go.kr/electioninfo/candidate_detail_info.xhtml?electionId=0020260603&huboId=${huboid}`;
+
   if (!disclosure) {
-    return <EmptyState emoji="⚖️" text="전과·소송 정보가 없어요" sub="5월 15일 후보 등록 마감 후 업데이트돼요" />;
+    return (
+      <div className="flex flex-col gap-3">
+        <EmptyState emoji="⚖️" text="전과·소송 정보가 없어요" sub="5월 15일 후보 등록 마감 후 업데이트돼요" />
+        <a href={necUrl} target="_blank" rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-medium"
+          style={{ background: "var(--white)", border: "1px solid var(--line)", color: "var(--ink2)" }}>
+          선관위에서 확인하기 →
+        </a>
+      </div>
+    );
   }
   const d = disclosure as Record<string, unknown>;
-  const hasCriminal = Boolean(d.criminal && JSON.stringify(d.criminal) !== "[]");
+  const criminal = String(d.criminal ?? "");
+  const hasCriminal = criminal !== "없음" && criminal !== "" && criminal !== "null";
   return (
     <div className="flex flex-col gap-3">
       <div className="p-5 rounded-2xl" style={{ background: hasCriminal ? "var(--bad-bg)" : "var(--ok-bg)", border: "1px solid var(--line)" }}>
-        <p className="text-sm font-semibold" style={{ color: hasCriminal ? "var(--bad-ink)" : "var(--ok-ink)" }}>
-          {hasCriminal ? "전과 기록 있음" : "전과 없음"}
+        <p className="text-sm" style={{ color: "var(--ink3)" }}>전과기록</p>
+        <p className="text-lg font-bold mt-1" style={{ color: hasCriminal ? "var(--bad-ink)" : "var(--ok-ink)" }}>
+          {criminal || "없음"}
         </p>
-        {hasCriminal && (
-          <pre className="text-xs mt-2 whitespace-pre-wrap" style={{ color: "var(--bad-ink)" }}>
-            {JSON.stringify(d.criminal as object, null, 2)}
-          </pre>
-        )}
       </div>
+      <a href={necUrl} target="_blank" rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-medium"
+        style={{ background: "var(--white)", border: "1px solid var(--line)", color: "var(--ink2)" }}>
+        선관위에서 상세 내용 확인하기 →
+      </a>
     </div>
   );
 }
@@ -328,7 +407,15 @@ function MediaTab({ candidateId }: { candidateId: string }) {
         같은 후보를 언론사별로 어떻게 다르게 보도하는지 비교해요
       </p>
 
-      {/* 공영·통신 — 상단 전체 폭 */}
+      {/* 보수 / 진보 — 최상단 2열 */}
+      {(conservative.length > 0 || progressive.length > 0) && (
+        <div className="flex gap-3">
+          {conservative.length > 0 && <LeanColumn lean="conservative" items={conservative} />}
+          {progressive.length > 0 && <LeanColumn lean="progressive" items={progressive} />}
+        </div>
+      )}
+
+      {/* 공영·통신 */}
       {neutral.length > 0 && (
         <section className="p-4 rounded-2xl" style={{ background: LEAN_LABEL.neutral.bg, border: "1px solid var(--line)" }}>
           <div className="flex items-center gap-2 mb-3">
@@ -363,14 +450,6 @@ function MediaTab({ candidateId }: { candidateId: string }) {
         </section>
       )}
 
-      {/* 보수 / 진보 — 2열 나란히 */}
-      {(conservative.length > 0 || progressive.length > 0) && (
-        <div className="flex gap-3">
-          {conservative.length > 0 && <LeanColumn lean="conservative" items={conservative} />}
-          {progressive.length > 0 && <LeanColumn lean="progressive" items={progressive} />}
-        </div>
-      )}
-
       {/* 기타 언론 */}
       {other.length > 0 && (
         <section>
@@ -399,6 +478,15 @@ function MediaTab({ candidateId }: { candidateId: string }) {
           )}
         </section>
       )}
+
+      {/* 전체 비교 보기 버튼 */}
+      <a
+        href={`/compare/${candidateId}`}
+        className="flex items-center justify-center w-full py-3 rounded-2xl text-sm font-semibold"
+        style={{ background: "var(--ink)", color: "var(--white)" }}
+      >
+        전체 비교 보기 →
+      </a>
 
       {/* 미디어 리터러시 안내 */}
       <div className="px-4 py-4 rounded-2xl" style={{ background: "#FFFBEB", border: "1px solid #FDE68A" }}>
@@ -487,6 +575,10 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
             </svg>
           </button>
         )}
+        {/* 공유하기 버튼 */}
+        {!loading && c && (
+          <ShareButton id={id} name={String(c.name ?? "")} />
+        )}
       </header>
 
       {!loading && c && (
@@ -535,11 +627,11 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
-            {/* 공유 버튼 */}
+            {/* 공유 버튼 (compare 페이지 URL 공유) */}
             <button
               onClick={() => {
-                const url = window.location.href;
-                const text = `${String(c.name)} 후보 정보 · 수요일`;
+                const url = `https://suyo.kr/compare/${id}`;
+                const text = `${String(c.name)} 후보 언론 비교 | suyo.kr`;
                 if (navigator.share) {
                   navigator.share({ title: text, url });
                 } else {
@@ -580,7 +672,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ id: 
             {activeTab === "pledge" && <PledgeTab pledges={data?.pledges ?? []} candidateId={id} />}
             {activeTab === "career" && <CareerTab history={data?.history ?? []} candidate={data?.candidate ?? {}} />}
             {activeTab === "assets" && <AssetsTab disclosure={data?.disclosure ?? null} />}
-            {activeTab === "criminal" && <CriminalTab disclosure={data?.disclosure ?? null} />}
+            {activeTab === "criminal" && <CriminalTab disclosure={data?.disclosure ?? null} huboid={id} />}
             {activeTab === "media" && <MediaTab candidateId={id} />}
           </div>
         </>
