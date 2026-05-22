@@ -1,0 +1,40 @@
+name: 공약 분석 (선관위 → Claude → Supabase)
+
+on:
+  workflow_dispatch:        # 수동 실행
+    inputs:
+      sgTypecode:
+        description: '타입 (비워두면 전체: 3,4,5,6,11)'
+        required: false
+        default: ''
+  schedule:
+    - cron: '0 * * * *'    # 매시간 자동 실행 (이어서 처리)
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300    # 최대 5시간
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 공약 분석 실행
+        env:
+          NEC_API_KEY: ${{ secrets.NEC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -n "${{ github.event.inputs.sgTypecode }}" ]; then
+            npx tsx scripts/analyze-pledges.ts --sgTypecode=${{ github.event.inputs.sgTypecode }}
+          else
+            npx tsx scripts/analyze-pledges.ts
+          fi
