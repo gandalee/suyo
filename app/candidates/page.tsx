@@ -16,6 +16,8 @@ interface Candidate {
   career1: string;
   career2: string;
   sggName: string;
+  sdName?: string;
+  wiwName?: string;
   status: string;
   photo_url?: string | null;
 }
@@ -286,10 +288,18 @@ function CandidatesContent() {
       .then((r) => r.json())
       .then((data) => {
         setSgId(data.sgId);
-        const keyword = isWide ? sido : sigungu || sido;
-        const filtered = keyword
-          ? data.items.filter((c: Candidate) => c.sggName?.includes(isWide ? sido : sigungu || sido))
-          : data.items;
+        let filtered = data.items as Candidate[];
+        if (type === "5") {
+          // 시도의원: sggName이 "동작구제1선거구" 형태 → sigungu로 시작하는 것 필터
+          if (sigungu) filtered = filtered.filter((c) => c.sggName?.startsWith(sigungu) || c.wiwName === sigungu);
+        } else if (type === "3" || type === "11") {
+          // 시도지사·교육감: sido로 필터
+          if (sido) filtered = filtered.filter((c) => c.sdName?.includes(sido) || c.sggName?.includes(sido));
+        } else {
+          // 구시군의장·의원: sggName에 sigungu 포함
+          if (sigungu) filtered = filtered.filter((c) => c.sggName?.includes(sigungu));
+          else if (sido) filtered = filtered.filter((c) => c.sdName?.includes(sido));
+        }
         setCandidates(filtered);
       })
       .finally(() => setLoading(false));
