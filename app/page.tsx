@@ -182,13 +182,18 @@ export default function Home() {
 
       {/* 상단 로고 영역 */}
       <div style={{ borderBottom: "1px solid var(--line2)" }}>
-        <div className="flex items-baseline justify-between px-5 pt-12 pb-3">
-          <span
-            className="font-black"
-            style={{ fontSize: 32, letterSpacing: "-0.04em", color: "var(--ink)", lineHeight: 1 }}
-          >
-            수요<span style={{ color: "var(--accent)" }}>일</span>
-          </span>
+        <div className="flex items-end justify-between px-5 pt-12 pb-3">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] tracking-widest" style={{ color: "var(--ink3)" }}>
+              대한민국 선거일은
+            </span>
+            <span
+              className="font-black"
+              style={{ fontSize: 32, letterSpacing: "-0.04em", color: "var(--ink)", lineHeight: 1 }}
+            >
+              수요<span style={{ color: "var(--accent)" }}>일</span>
+            </span>
+          </div>
           <span className="text-[10px] tracking-widest uppercase" style={{ color: "var(--ink3)" }}>
             2026 · 6 · 3
           </span>
