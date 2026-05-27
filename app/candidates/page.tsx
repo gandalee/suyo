@@ -348,9 +348,9 @@ function CandidatesContent() {
       {sgId === "20220601" && (
         <div className="px-5 pt-4">
           <div className="px-4 py-3 rounded-2xl" style={{ background: "var(--ok-bg)" }}>
-            <p className="text-xs font-semibold mb-0.5" style={{ color: "var(--ok-ink)" }}>2022년 데이터</p>
+            <p className="text-xs font-semibold mb-0.5" style={{ color: "var(--ok-ink)" }}>참고</p>
             <p className="text-sm" style={{ color: "var(--ok-ink)" }}>
-              2026년 후보는 5/15 등록 마감 후 업데이트돼요.
+              이 선거구는 2026년 후보 데이터가 아직 없어요.
             </p>
           </div>
         </div>
@@ -380,9 +380,41 @@ function CandidatesContent() {
               후보자 정보가 없어요
             </p>
             <p className="text-sm" style={{ color: "var(--ink3)" }}>
-              5월 15일 등록 마감 후 업데이트돼요
+              해당 지역 후보가 등록되지 않았어요
             </p>
           </div>
+        ) : type === "5" || type === "6" ? (
+          // 시도의원·구시군의원: 선거구별 그룹
+          (() => {
+            const groups = candidates.reduce<Record<string, typeof candidates>>((acc, c) => {
+              const key = c.sggName || "기타";
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(c);
+              return acc;
+            }, {});
+            return (
+              <>
+                <p className="text-sm" style={{ color: "var(--ink3)" }}>
+                  총 {candidates.length}명 · {Object.keys(groups).length}개 선거구
+                </p>
+                {Object.entries(groups).map(([district, list]) => (
+                  <div key={district}>
+                    <p className="text-xs font-bold px-1 py-2 mt-2" style={{ color: "var(--ink3)" }}>
+                      {district}
+                    </p>
+                    {list.map((c) => (
+                      <CandidateCard
+                        key={c.huboid}
+                        c={c}
+                        selected={compareList.some((p) => p.huboid === c.huboid)}
+                        onToggle={toggleCompare}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </>
+            );
+          })()
         ) : (
           <>
             <p className="text-sm" style={{ color: "var(--ink3)" }}>

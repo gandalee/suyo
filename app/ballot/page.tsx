@@ -216,7 +216,7 @@ function BallotContent() {
         <div className="px-4 py-4 rounded-2xl" style={{ background: "var(--ok-bg)" }}>
           <p className="text-xs font-semibold mb-1" style={{ color: "var(--ok-ink)" }}>안내</p>
           <p className="text-sm leading-relaxed" style={{ color: "var(--ok-ink)" }}>
-            후보자 정보는 5월 15일 등록 마감 이후 업데이트돼요. 그 전까지는 2022년 선거 데이터로 확인할 수 있어요.
+            2026년 6월 3일 지방선거 후보자 정보예요. 공약·성향 분석은 후보 이름을 눌러 확인하세요.
           </p>
         </div>
       </div>
