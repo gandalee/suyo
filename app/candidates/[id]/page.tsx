@@ -161,7 +161,60 @@ function PledgeReviewSection({ candidateId }: { candidateId: string }) {
   );
 }
 
+// 선관위 공약 원문 파싱 렌더러
+// □ = 섹션 / ○ = 항목 / - = 세부항목
+function PledgeDetail({ text }: { text: string }) {
+  const lines = text
+    .split("\n")
+    .map((l) => l.replace(/ /g, " ").trim())
+    .filter(Boolean);
+
+  type Node =
+    | { type: "section"; text: string }
+    | { type: "item"; text: string }
+    | { type: "sub"; text: string }
+    | { type: "para"; text: string };
+
+  const nodes: Node[] = lines.map((line) => {
+    if (/^□/.test(line))  return { type: "section", text: line.replace(/^□\s*/, "") };
+    if (/^○/.test(line))  return { type: "item",    text: line.replace(/^○\s*/, "") };
+    if (/^[-•·]/.test(line)) return { type: "sub",  text: line.replace(/^[-•·]\s*/, "") };
+    return { type: "para", text: line };
+  });
+
+  return (
+    <div className="flex flex-col gap-2">
+      {nodes.map((node, i) => {
+        if (node.type === "section") return (
+          <div key={i} className="mt-3 first:mt-0 pb-1" style={{ borderBottom: "1px solid var(--line2)" }}>
+            <p className="text-xs font-bold tracking-wide uppercase" style={{ color: "var(--ink3)" }}>
+              {node.text}
+            </p>
+          </div>
+        );
+        if (node.type === "item") return (
+          <div key={i} className="flex gap-2 mt-1">
+            <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full mt-1.5" style={{ background: "var(--ink)" }} />
+            <p className="text-sm font-semibold leading-relaxed" style={{ color: "var(--ink)" }}>{node.text}</p>
+          </div>
+        );
+        if (node.type === "sub") return (
+          <div key={i} className="flex gap-2 pl-4">
+            <span className="flex-shrink-0 text-xs mt-0.5" style={{ color: "var(--ink3)" }}>–</span>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--ink2)" }}>{node.text}</p>
+          </div>
+        );
+        return (
+          <p key={i} className="text-sm leading-relaxed" style={{ color: "var(--ink2)" }}>{node.text}</p>
+        );
+      })}
+    </div>
+  );
+}
+
 function PledgeTab({ pledges, candidateId }: { pledges: CandidateData["pledges"]; candidateId: string }) {
+  const [expanded, setExpanded] = useState<number | null>(null);
+
   return (
     <div className="flex flex-col gap-3">
       {/* 언론이 본 공약 이행 */}
@@ -171,17 +224,49 @@ function PledgeTab({ pledges, candidateId }: { pledges: CandidateData["pledges"]
       {pledges.length > 0 ? (
         <div className="flex flex-col gap-3 mt-2">
           <h3 className="text-sm font-semibold" style={{ color: "var(--ink3)" }}>등록 공약</h3>
-          {pledges.map((p, i) => (
-            <div key={i} className="p-5 rounded-2xl" style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
-              {p.category && <span className="text-xs px-2 py-1 rounded-full mb-2 inline-block" style={{ background: "var(--ok-bg)", color: "var(--ok-ink)" }}>{p.category}</span>}
-              <p className="text-base font-semibold" style={{ color: "var(--ink)" }}>{p.title}</p>
-              {p.detail && <p className="text-sm mt-2 leading-relaxed" style={{ color: "var(--ink2)" }}>{p.detail}</p>}
-            </div>
-          ))}
+          {pledges.map((p, i) => {
+            const isOpen = expanded === i;
+            const hasDetail = !!p.detail?.trim();
+            return (
+              <div key={i} className="rounded-2xl overflow-hidden" style={{ background: "var(--white)", border: "1px solid var(--line)" }}>
+                {/* 공약 제목 행 */}
+                <button
+                  className="w-full flex items-start gap-3 p-5 text-left"
+                  onClick={() => hasDetail && setExpanded(isOpen ? null : i)}
+                >
+                  <div className="flex-1 min-w-0">
+                    {p.category && (
+                      <span className="text-xs px-2 py-0.5 rounded-full mb-2 inline-block font-medium"
+                        style={{ background: "var(--ok-bg)", color: "var(--ok-ink)" }}>
+                        {p.category}
+                      </span>
+                    )}
+                    <p className="text-base font-bold leading-snug" style={{ color: "var(--ink)", letterSpacing: "-0.02em" }}>
+                      {p.title}
+                    </p>
+                  </div>
+                  {hasDetail && (
+                    <span className="flex-shrink-0 mt-0.5 text-xs" style={{ color: "var(--ink3)" }}>
+                      {isOpen ? "▲" : "▼"}
+                    </span>
+                  )}
+                </button>
+
+                {/* 펼쳐진 상세 내용 */}
+                {isOpen && hasDetail && (
+                  <div className="px-5 pb-5 pt-0" style={{ borderTop: "1px solid var(--line)" }}>
+                    <div className="pt-4">
+                      <PledgeDetail text={p.detail} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="mt-2">
-          <EmptyState emoji="📋" text="등록 공약이 없어요" sub="5월 15일 후보 등록 마감 후 업데이트돼요" />
+          <EmptyState emoji="📋" text="등록 공약이 없어요" sub="" />
         </div>
       )}
     </div>
