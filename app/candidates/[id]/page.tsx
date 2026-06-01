@@ -217,9 +217,6 @@ function PledgeTab({ pledges, candidateId }: { pledges: CandidateData["pledges"]
 
   return (
     <div className="flex flex-col gap-3">
-      {/* 언론이 본 공약 이행 */}
-      <PledgeReviewSection candidateId={candidateId} />
-
       {/* 공약 목록 */}
       {pledges.length > 0 ? (
         <div className="flex flex-col gap-3 mt-2">
@@ -269,6 +266,9 @@ function PledgeTab({ pledges, candidateId }: { pledges: CandidateData["pledges"]
           <EmptyState emoji="📋" text="등록 공약이 없어요" sub="" />
         </div>
       )}
+
+      {/* 언론이 본 공약 이행 */}
+      <PledgeReviewSection candidateId={candidateId} />
     </div>
   );
 }
