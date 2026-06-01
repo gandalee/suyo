@@ -262,7 +262,7 @@ export default function MatchPage() {
 
       <div className="pb-10 flex flex-col gap-2">
         <button
-          onClick={handleNext}
+          onClick={() => handleNext()}
           disabled={!selected}
           className="w-full font-bold text-sm"
           style={{
