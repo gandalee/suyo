@@ -278,45 +278,78 @@ export default function ComparePage({
         </button>
       </header>
 
-      <div className="px-5 py-6 flex flex-col gap-5">
-        {/* 설명 텍스트 */}
-        <div>
-          <p
-            className="text-base font-semibold"
-            style={{ color: "var(--ink)" }}
-          >
-            같은 후보, 언론은 이렇게 다르게 봅니다
-          </p>
-          <p className="text-xs mt-1" style={{ color: "var(--ink3)" }}>
-            보수·진보·공영 언론의 보도를 나란히 비교해보세요
-          </p>
-        </div>
+      <div className="flex flex-col gap-5">
 
         {loading ? (
           <div className="flex justify-center py-16">
             <div
               className="w-8 h-8 rounded-full border-2 animate-spin"
-              style={{
-                borderColor: "var(--accent)",
-                borderTopColor: "transparent",
-              }}
+              style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
             />
           </div>
         ) : items.length === 0 ? (
-          <div
-            className="flex flex-col items-center py-16 gap-3"
-            style={{ color: "var(--ink3)" }}
-          >
+          <div className="flex flex-col items-center py-16 gap-3 px-5">
             <span className="text-4xl">📰</span>
-            <p className="text-base font-medium" style={{ color: "var(--ink)" }}>
-              관련 뉴스가 없어요
-            </p>
-            <p className="text-sm" style={{ color: "var(--ink3)" }}>
-              네이버 뉴스 기준으로 표시해요
-            </p>
+            <p className="text-base font-medium" style={{ color: "var(--ink)" }}>관련 뉴스가 없어요</p>
+            <p className="text-sm" style={{ color: "var(--ink3)" }}>네이버 뉴스 기준으로 표시해요</p>
           </div>
         ) : (
           <>
+            {/* ── 대표 헤드라인 비교 카드 ── */}
+            {(conservative.length > 0 || progressive.length > 0) && (
+              <div style={{ background: "#1A1815", padding: "24px 20px 28px" }}>
+                <p className="text-xs font-bold tracking-widest mb-4" style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+                  같은 후보, 다른 시각
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* 보수 */}
+                  <div className="flex flex-col gap-2 p-4 rounded-2xl" style={{ background: "#1e2d5e" }}>
+                    <span className="text-xs font-bold px-2 py-1 rounded-full w-fit" style={{ background: "#3b5bdb", color: "#fff" }}>
+                      보수 언론
+                    </span>
+                    {conservative.slice(0, 2).map((n, i) => (
+                      <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
+                        className="text-xs leading-snug font-medium"
+                        style={{ color: "rgba(255,255,255,0.85)" }}>
+                        {n.title}
+                      </a>
+                    ))}
+                    <span className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+                      {conservative.length}건
+                    </span>
+                  </div>
+                  {/* 진보 */}
+                  <div className="flex flex-col gap-2 p-4 rounded-2xl" style={{ background: "#5e1e1e" }}>
+                    <span className="text-xs font-bold px-2 py-1 rounded-full w-fit" style={{ background: "#c0392b", color: "#fff" }}>
+                      진보 언론
+                    </span>
+                    {progressive.slice(0, 2).map((n, i) => (
+                      <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
+                        className="text-xs leading-snug font-medium"
+                        style={{ color: "rgba(255,255,255,0.85)" }}>
+                        {n.title}
+                      </a>
+                    ))}
+                    <span className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+                      {progressive.length}건
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[11px] mt-4 text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  아래에서 전체 기사를 확인하세요
+                </p>
+              </div>
+            )}
+
+            <div className="px-5 flex flex-col gap-5">
+            {/* 보수 / 진보 전체 목록 */}
+            {(conservative.length > 0 || progressive.length > 0) && (
+              <div className="flex gap-3">
+                {conservative.length > 0 && <LeanColumn lean="conservative" items={conservative} />}
+                {progressive.length > 0 && <LeanColumn lean="progressive" items={progressive} />}
+              </div>
+            )}
+
             {/* 공영·통신 — 전체 폭 */}
             {neutral.length > 0 && (
               <section
@@ -406,38 +439,21 @@ export default function ComparePage({
               </section>
             )}
 
-            {/* 보수 / 진보 — 2열 나란히 */}
-            {(conservative.length > 0 || progressive.length > 0) && (
-              <div className="flex gap-3">
-                {conservative.length > 0 && (
-                  <LeanColumn lean="conservative" items={conservative} />
-                )}
-                {progressive.length > 0 && (
-                  <LeanColumn lean="progressive" items={progressive} />
-                )}
-              </div>
-            )}
-
             {/* 미디어 리터러시 안내 */}
             <div
               className="px-4 py-4 rounded-2xl"
               style={{ background: "#FFFBEB", border: "1px solid #FDE68A" }}
             >
-              <p
-                className="text-xs font-semibold mb-1"
-                style={{ color: "#92400E" }}
-              >
+              <p className="text-xs font-semibold mb-1" style={{ color: "#92400E" }}>
                 미디어 리터러시
               </p>
-              <p
-                className="text-xs leading-relaxed"
-                style={{ color: "#78350F" }}
-              >
+              <p className="text-xs leading-relaxed" style={{ color: "#78350F" }}>
                 같은 사실도 언론에 따라 다르게 보도됩니다. Suyo는 어느 쪽이
                 옳다고 판단하지 않습니다. 다양한 시각을 비교하며 스스로 판단해
                 보세요.
               </p>
             </div>
+            </div>{/* /px-5 */}
           </>
         )}
       </div>
