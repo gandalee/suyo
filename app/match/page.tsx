@@ -52,9 +52,10 @@ export default function MatchPage() {
     router.push(`/match/result?${params.toString()}`);
   }
 
-  function handleNext() {
-    if (!selected) return;
-    const next = { ...stances, [issue.id]: selected };
+  function handleNext(stance?: Stance) {
+    const s = stance ?? selected;
+    if (!s) return;
+    const next = { ...stances, [issue.id]: s };
     setStances(next);
     setSelected(null);
     if (current + 1 >= total) {
@@ -229,7 +230,10 @@ export default function MatchPage() {
             return (
               <button
                 key={btn.stance}
-                onClick={() => setSelected(btn.stance)}
+                onClick={() => {
+                  setSelected(btn.stance);
+                  setTimeout(() => handleNext(btn.stance), 420);
+                }}
                 className="flex items-center gap-4 px-5 py-4 text-left transition-all"
                 style={{
                   background: isSelected ? btn.activeBg : "var(--white)",

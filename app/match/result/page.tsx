@@ -307,17 +307,6 @@ function ResultContent() {
       {/* ── 내 지역구 후보 섹션 ── */}
       {(sido && sigungu) && (
         <section className="px-5 mb-8">
-          {/* 공약 분석 예정 안내 */}
-          <div
-            className="px-4 py-3 mb-5"
-            style={{ background: "var(--line2)", border: "1px solid var(--line)" }}
-          >
-            <p className="text-xs leading-relaxed" style={{ color: "var(--ink2)" }}>
-              🗓️ <b>5월 21일 선거운동 시작 후</b> 각 후보의 공약이 분석돼
-              내 성향과의 일치율을 확인할 수 있어요.
-            </p>
-          </div>
-
           {loading && (
             <div className="flex items-center justify-center py-10">
               <div className="w-6 h-6 rounded-full border-2 animate-spin"

@@ -46,7 +46,11 @@ function ElectionCard({
       .then((r) => r.json())
       .then((data) => {
         const items: CandidateChip[] = data.items ?? [];
-        const keyword = isWide ? sido : sigungu || sido;
+        // 시도의원(5)은 sggName이 "동작구제1선거구" 형태 → sigungu로 필터
+        const keyword =
+          election.code === "5" ? sigungu
+          : isWide ? sido
+          : sigungu || sido;
         const filtered = keyword
           ? items.filter((c) => (c as unknown as { sggName: string }).sggName?.includes(keyword))
           : items;

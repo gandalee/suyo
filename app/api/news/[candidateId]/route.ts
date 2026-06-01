@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { classifyOutlet } from "@/src/data/media-outlets";
+import { classifyOutlet, OUTLET_MAP } from "@/src/data/media-outlets";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -71,9 +71,9 @@ export async function GET(
       // 네이버 뉴스 제목에서 언론사 힌트 추출 시도
       const titleClean = stripHtml(item.title);
       const meta = classifyOutlet(domain) ??
-        Object.entries(require("@/src/data/media-outlets").OUTLET_MAP).find(
+        (Object.entries(OUTLET_MAP).find(
           ([key]) => item.originallink.includes(key) || domain.includes(key)
-        )?.[1] as ReturnType<typeof classifyOutlet>;
+        )?.[1] ?? null);
 
       return {
         title: titleClean,
@@ -91,5 +91,7 @@ export async function GET(
   return NextResponse.json({
     candidateName: candidate.name,
     items: classified,
+  }, {
+    headers: { "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600" },
   });
 }
